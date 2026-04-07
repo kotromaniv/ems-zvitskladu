@@ -390,8 +390,6 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
 </div>
 
 <!-- MODALS -->
-
-<!-- Підтвердження відправки -->
 <div class="overlay" id="confirmOv">
   <div class="modal">
     <div class="mh"><h3>Підтвердження звіту</h3><button class="mx" onclick="closeM('confirmOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
@@ -409,7 +407,6 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
   </div>
 </div>
 
-<!-- Деталі звіту -->
 <div class="overlay" id="detOv">
   <div class="modal lg">
     <div class="mh"><h3>Деталі звіту</h3><button class="mx" onclick="closeM('detOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
@@ -417,7 +414,6 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
   </div>
 </div>
 
-<!-- Видалення запису -->
 <div class="overlay" id="delOv">
   <div class="modal">
     <div class="mh"><h3>Підтвердження видалення</h3><button class="mx" onclick="closeM('delOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
@@ -443,7 +439,7 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
 // ══════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════
-const API = 'https://script.google.com/macros/s/AKfycby9amAWdvNPHmKMDycQi79Prqc8N5qcdpMm-JBu5zPns9u-oh4uBKIPH0ABtPh8CA17Ow/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxCxiJnwm1yuh7gfSsJRhb1ZnrYzHCE8MKa17G3qg3AYghuVpX-gr83OphnDVo9uchK/exec';
 const CD_MS = 10 * 60 * 1000; // 10 хвилин КД
 
 // ══════════════════════════════════════════
@@ -473,8 +469,8 @@ const ITEMS = {
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-let me = null; // { login, nick, staticId, isAdmin }
-let qty = {}; // { itemId: count }
+let me = null;
+let qty = {};
 let curCat = 'med';
 let allH = [], filtH = [], curHPg = 1;
 const PER = 15;
@@ -494,8 +490,8 @@ async function doLogin() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> Перевірка...';
   try {
-    const r = await call('loginUser', { login });
-    if (r.ok) {
+    const r = await call('login', { login });
+    if (r.success) {
       enterSession(r.user);
     } else {
       showLoginErr(r.error || 'Невірний логін. Зверніться до адміністратора.');
@@ -521,6 +517,8 @@ function enterSession(user) {
   document.getElementById('topNick').textContent = me.nick || me.login;
   checkCD();
   renderItems();
+  loadHistory();
+  loadStats();
 }
 
 // ══════════════════════════════════════════
@@ -538,7 +536,7 @@ function goPage(page) {
 }
 
 // ══════════════════════════════════════════
-// CD (cooldown) — зберігається в localStorage
+// CD (cooldown)
 // ══════════════════════════════════════════
 function getCDKey() { return 'wh_cd_' + (me ? me.login : ''); }
 function setCDNow() { localStorage.setItem(getCDKey(), String(Date.now())); }
@@ -609,7 +607,6 @@ function renderItems() {
 }
 function changeQty(id, delta) {
   qty[id] = Math.max(0, (qty[id] || 0) + delta);
-  // Оновити лише цей елемент без перерендеру
   const qEl = document.getElementById('qty-' + id);
   const card = document.getElementById('icard-' + id);
   if (qEl) qEl.textContent = qty[id];
@@ -673,16 +670,24 @@ async function submitReport() {
   const btn = document.getElementById('confirmSendBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> Відправлення...';
-  const itemsStr = items.map(it => `${it.id}:${it.qty}`).join(',');
+  const itemsStr = JSON.stringify(items.map(it => ({ id: it.id, name: it.name, qty: it.qty, price: it.price })));
   try {
-    const r = await call('addReport', { nick: me.nick, staticId: me.staticId, login: me.login, items: itemsStr });
-    if (r.ok) {
+    const r = await call('submitReport', { 
+      initNick: me.nick, 
+      initSid: me.staticId, 
+      initLogin: me.login,
+      items: itemsStr,
+      total: items.reduce((s,it) => s + it.price * it.qty, 0)
+    });
+    if (r.success) {
       setCDNow();
       checkCD();
       closeM('confirmOv');
       toast('Звіт успішно відправлено! ✅', 'ok');
       resetForm();
       cache.history.at = 0;
+      loadHistory(true);
+      loadStats();
     } else {
       toast(r.error || 'Помилка відправки', 'err');
     }
@@ -700,8 +705,8 @@ async function loadHistory(force = false) {
   try {
     curHPg = 1;
     const canCache = !force && cache.history.data && Date.now() - cache.history.at < CACHE_TTL;
-    const r = canCache ? { ok:true, reports: cache.history.data } : await call('getReports');
-    allH = (r.reports || []);
+    const r = canCache ? { records: cache.history.data } : await call('getReports');
+    allH = (r.records || []).map(x => ({ ...x, id: x.ticket || x.id }));
     cache.history = { at: Date.now(), data: allH };
     document.getElementById('hCnt').textContent = `${allH.length} звітів знайдено`;
     filterH();
@@ -732,7 +737,7 @@ function renderH() {
   document.getElementById('hEmpty').style.display = 'none';
   tb.innerHTML = sl.map(r => {
     const dt = r.date ? fmtKyiv(new Date(r.date)) : '—';
-    const canDel = me && me.isAdmin;
+    const canDel = me && me.isArchiveAdmin;
     return `<tr>
       <td class="tmono" style="white-space:nowrap;">${dt}</td>
       <td class="tbold">${esc(r.nick||'—')}</td>
@@ -784,11 +789,12 @@ async function confirmDel() {
   if (!login || !pass) { showDE('Заповніть логін та пароль'); return; }
   try {
     const r = await call('deleteReport', { id: delId, login, password: pass });
-    if (r.ok) {
+    if (r.success) {
       closeM('delOv');
       toast('Запис видалено', 'ok');
       cache.history.at = 0;
       loadHistory(true);
+      loadStats();
     } else showDE(r.error || 'Невірні облікові дані');
   } catch(e) { showDE('Помилка з\'єднання'); }
 }
@@ -808,7 +814,6 @@ async function loadStats() {
     document.getElementById('stTotal').textContent = s.total ?? '—';
     document.getElementById('stMat').textContent = s.totalMat ? s.totalMat.toLocaleString('uk-UA') + ' мт.' : '—';
     document.getElementById('stAvg').textContent = s.avg ? Math.round(s.avg).toLocaleString('uk-UA') + ' мт.' : '—';
-    // Leaderboard
     const lb = (s.leaderboard || []).slice(0,10);
     const maxCnt = lb.length ? lb[0].count || 1 : 1;
     const posClass = ['lp1','lp2','lp3','lpx','lpx','lpx','lpx','lpx','lpx','lpx'];
