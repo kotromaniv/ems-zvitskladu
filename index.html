@@ -189,7 +189,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
 .toast.info{background:var(--bg3);border:1px solid var(--border2);color:var(--txt2);}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
 
-/* LOADING */
 .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:1200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
 .loading-overlay.open{display:flex;}
 .spinner{width:40px;height:40px;border:3px solid rgba(220,20,60,.2);border-top-color:var(--c);border-radius:50%;animation:spin .8s linear infinite;}
@@ -208,7 +207,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
@@ -225,7 +223,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app" style="display:none;">
   <div class="app">
     <div class="header">
@@ -250,7 +247,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
       <button class="tab" onclick="showTab('stats')">📊 Статистика</button>
     </div>
 
-    <!-- REPORT TAB -->
     <div id="tab-report">
       <div id="cdNotice" class="cd-notice" style="display:none;">
         <span style="color:var(--c);">⏳</span>
@@ -290,7 +286,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
-    <!-- HISTORY TAB -->
     <div id="tab-history" style="display:none;">
       <div class="history-toolbar">
         <input type="text" class="search-box" id="historySearch" placeholder="Пошук за ніком або Static ID..." oninput="renderHistory()">
@@ -306,7 +301,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
-    <!-- STATS TAB -->
     <div id="tab-stats" style="display:none;">
       <div class="stats-filters">
         <button class="filter-btn" onclick="setFilter('today')">Сьогодні</button>
@@ -327,7 +321,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
 <div id="confirmModal" class="modal-overlay" onclick="closeModal(event,'confirmModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header"><h2>Підтвердження звіту</h2><button class="modal-close" onclick="closeModal(null,'confirmModal')">✕</button></div>
@@ -344,7 +337,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
   </div>
 </div>
 
-<!-- VIEW MODAL -->
 <div id="viewModal" class="modal-overlay" onclick="closeModal(event,'viewModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header"><h2>Деталі звіту</h2><button class="modal-close" onclick="closeModal(null,'viewModal')">✕</button></div>
@@ -356,7 +348,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
   </div>
 </div>
 
-<!-- DELETE MODAL -->
 <div id="deleteModal" class="modal-overlay" onclick="closeModal(event,'deleteModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header"><h2>Підтвердження видалення</h2><button class="modal-close" onclick="closeModal(null,'deleteModal')">✕</button></div>
@@ -380,18 +371,11 @@ tr:hover td{background:rgba(220,20,60,.03);}
 <div id="loadingOverlay" class="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Завантаження...</div></div>
 
 <script>
-// ============================================================
-//  CONFIGURATION
-// ============================================================
 const CONFIG = {
   scriptUrl: 'https://script.google.com/macros/s/AKfycbwr6W8RsrGwU7tb9C9ppulYWHTsQJKIihuSYXI8JtaenhASSdFF-rcnVzpEk5Zfm2hz/exec',
-  csvUrl: 'https://docs.google.com/spreadsheets/d/1TxyFBXYaZI5l8jbgQpFho--FUShXXPmu1Kv_2tfOiXo/gviz/tq?tqx=out:csv&sheet=reports',
   CD_MS: 10 * 60 * 1000
 };
 
-// ============================================================
-//  ITEMS DATABASE
-// ============================================================
 const ITEMS = {
   medical: [
     { id: 'medkit', name: 'Велика аптечка', price: 75 },
@@ -414,9 +398,6 @@ const ITEMS = {
 };
 const ALL_ITEMS = [...ITEMS.medical, ...ITEMS.uniform, ...ITEMS.armor];
 
-// ============================================================
-//  GLOBAL STATE
-// ============================================================
 let currentUser = null;
 let reportsDB = [];
 let pendingDeleteId = null;
@@ -424,9 +405,6 @@ let currentFilter = '30d';
 let cdInterval = null;
 let qtyState = {};
 
-// ============================================================
-//  INIT
-// ============================================================
 function init() {
   const saved = localStorage.getItem('ems_user');
   if (saved) {
@@ -455,7 +433,7 @@ async function login() {
       currentUser = res.user;
       localStorage.setItem('ems_user', JSON.stringify(currentUser));
       showApp();
-      loadReports();
+      await loadReports();
       checkCD();
     } else {
       showLoginError(res.error || 'Невірний логін');
@@ -484,13 +462,8 @@ function showApp() {
   document.getElementById('playerNick').value = currentUser.nick || '';
   document.getElementById('playerStatic').value = currentUser.staticId || '';
 
-  // Show admin badge
   const badge = document.getElementById('adminBadge');
-  if (currentUser.isAdmin) {
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
+  badge.style.display = currentUser.isAdmin ? 'flex' : 'none';
 
   ALL_ITEMS.forEach(item => { qtyState[item.id] = 0; });
   buildAllGrids();
@@ -504,17 +477,12 @@ function showLoginError(msg) {
   setTimeout(() => err.style.display = 'none', 3500);
 }
 
-// ============================================================
-//  API CALLS — FIXED (no more broken URL concatenation)
-// ============================================================
 async function apiCall(params) {
   const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
   const res = await fetch(url);
   return res.json();
 }
 
-// For write operations we use a regular fetch (not no-cors)
-// so we can actually read the response
 async function apiWrite(params) {
   const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
   const res = await fetch(url);
@@ -524,81 +492,69 @@ async function apiWrite(params) {
 async function loadReports() {
   showLoading(true, 'Завантаження даних...');
   try {
-    const res = await fetch(CONFIG.csvUrl);
-    const text = await res.text();
-    reportsDB = parseCSV(text);
+    const res = await apiCall({ action: 'getReports' });
+
+    if (!res || !res.success) {
+      throw new Error(res?.error || 'Не вдалося отримати історію');
+    }
+
+    reportsDB = normalizeReports(res.records || []);
     reportsDB.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     renderHistory();
     renderStats();
-  } catch(e) {
+  } catch (e) {
+    console.error('loadReports error:', e);
     toast('Помилка завантаження даних', 'error');
+    reportsDB = [];
+    renderHistory();
+    renderStats();
   }
   showLoading(false);
 }
 
-function parseCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length <= 1) return [];
-  const reports = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    if (!cols[0]) continue;
+function normalizeReports(records) {
+  return records.map(r => {
+    let items = [];
+
     try {
-      const itemsRaw = cols[4].replace(/^"|"$/g, '').replace(/""/g, '"');
-      let items = [];
-      try {
-        items = JSON.parse(itemsRaw);
-      } catch(e) {
-        const pairs = itemsRaw.split(',');
-        pairs.forEach(pair => {
-          const [id, qty] = pair.split(':');
-          if (id && qty) {
-            const item = ALL_ITEMS.find(i => i.id === id.trim());
-            if (item) items.push({ ...item, qty: parseInt(qty) });
-          }
-        });
+      if (Array.isArray(r.items)) {
+        items = r.items;
+      } else if (typeof r.items === 'string' && r.items.trim()) {
+        items = JSON.parse(r.items);
       }
-      reports.push({
-        id: cols[0].replace(/^"|"$/g, ''),
-        date: cols[1].replace(/^"|"$/g, ''),
-        nick: cols[2].replace(/^"|"$/g, ''),
-        staticId: cols[3].replace(/^"|"$/g, ''),
-        items: items,
-        total: Number(cols[5].replace(/^"|"$/g, ''))
-      });
-    } catch(e) {}
-  }
-  return reports;
+    } catch (e) {
+      items = [];
+    }
+
+    items = items.map(i => ({
+      id: i.id || '',
+      name: i.name || '',
+      price: Number(i.price) || 0,
+      qty: Number(i.qty) || 0
+    }));
+
+    return {
+      id: String(r.id || ''),
+      date: r.date || '',
+      nick: String(r.nick || ''),
+      staticId: String(r.staticId || ''),
+      items: items,
+      total: Number(r.total) || 0,
+      login: String(r.login || '')
+    };
+  });
 }
 
-function parseCSVLine(line) {
-  const result = [];
-  let cur = '', inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (c === ',' && !inQuotes) {
-      result.push(cur); cur = '';
-    } else { cur += c; }
-  }
-  result.push(cur);
-  return result;
-}
-
-// ============================================================
-//  COOLDOWN — admins bypass CD
-// ============================================================
 function getCDKey() { return 'ems_cd_' + (currentUser?.login || ''); }
 function getCDRemaining() {
-  if (currentUser?.isAdmin) return 0; // admins have no cooldown
+  if (currentUser?.isAdmin) return 0;
   const val = localStorage.getItem(getCDKey());
   if (!val) return 0;
   return Math.max(0, CONFIG.CD_MS - (Date.now() - Number(val)));
 }
 function setCD() {
-  if (currentUser?.isAdmin) return; // don't set CD for admins
+  if (currentUser?.isAdmin) return;
   localStorage.setItem(getCDKey(), String(Date.now()));
 }
 function checkCD() {
@@ -631,9 +587,6 @@ function updateCDTimer(ms) {
   document.getElementById('cdTimer').textContent = `${m}:${String(s).padStart(2,'0')}`;
 }
 
-// ============================================================
-//  ITEMS GRID
-// ============================================================
 function buildAllGrids() {
   for (const [cat, items] of Object.entries(ITEMS)) {
     const grid = document.getElementById('grid-' + cat);
@@ -677,6 +630,7 @@ function onQtyChange(id) {
     sub.textContent = (val * item.price).toLocaleString() + ' мт.';
   } else {
     card.classList.remove('selected');
+    sub.textContent = '';
   }
   updateFooter();
 }
@@ -698,6 +652,8 @@ function resetForm() {
     qtyState[item.id] = 0;
     const card = document.getElementById('card-' + item.id);
     if (card) card.classList.remove('selected');
+    const sub = document.getElementById('sub-' + item.id);
+    if (sub) sub.textContent = '';
   });
   updateFooter();
 }
@@ -707,9 +663,6 @@ function getSelectedItems() {
     .map(item => ({ ...item, qty: qtyState[item.id] }));
 }
 
-// ============================================================
-//  CONFIRM & SUBMIT
-// ============================================================
 function openConfirmModal() {
   if (getCDRemaining() > 0) { toast('Зачекайте завершення кулдауну', 'error'); return; }
   const selected = getSelectedItems();
@@ -733,7 +686,6 @@ async function submitReport() {
   const selected = getSelectedItems();
   if (!selected.length) { toast('Оберіть хоча б один предмет', 'error'); return; }
 
-  const total = selected.reduce((s, i) => s + i.price * i.qty, 0);
   const itemsCompact = selected.map(i => `${i.id}:${i.qty}`).join(',');
 
   const btn = document.getElementById('confirmSubmitBtn');
@@ -768,9 +720,6 @@ async function submitReport() {
   btn.innerHTML = '✅ Підтвердити';
 }
 
-// ============================================================
-//  HISTORY
-// ============================================================
 function renderHistory() {
   const search = (document.getElementById('historySearch')?.value || '').toLowerCase();
   let filtered = reportsDB;
@@ -789,7 +738,7 @@ function renderHistory() {
   }
   empty.style.display = 'none';
   tbody.innerHTML = filtered.map(r => {
-    const date = new Date(r.date).toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+    const date = formatDateSafe(r.date);
     return `<tr>
       <td style="white-space:nowrap;color:var(--txt2);">${date}</td>
       <td><strong style="color:var(--txt);">${escapeHtml(r.nick)}</strong></td>
@@ -808,8 +757,8 @@ function viewReport(id) {
   if (!report) return;
   document.getElementById('viewNick').textContent = report.nick;
   document.getElementById('viewStatic').textContent = report.staticId;
-  document.getElementById('viewDate').textContent = new Date(report.date).toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
-  document.getElementById('viewItems').innerHTML = report.items.map(i => `
+  document.getElementById('viewDate').textContent = formatDateSafe(report.date);
+  document.getElementById('viewItems').innerHTML = (report.items || []).map(i => `
     <div class="modal-item"><span>${escapeHtml(i.name)} ×${i.qty}</span><span style="color:var(--c);">${(i.qty * i.price).toLocaleString()} мт.</span></div>
   `).join('');
   document.getElementById('viewTotal').textContent = report.total.toLocaleString() + ' мт.';
@@ -824,7 +773,6 @@ function openDeleteModal(id) {
   openModal('deleteModal');
 }
 
-// FIXED: use apiCall (not apiWrite) so we can read the response
 async function confirmDelete() {
   const login = document.getElementById('delLogin').value.trim();
   const password = document.getElementById('delPass').value;
@@ -835,7 +783,6 @@ async function confirmDelete() {
   btn.innerHTML = '⏳ Перевірка...';
 
   try {
-    // First check auth
     const auth = await apiCall({ action: 'checkAuth', login, password });
     if (!auth.success) {
       showDelError(auth.error || 'Невірний логін або пароль');
@@ -843,7 +790,7 @@ async function confirmDelete() {
       btn.innerHTML = '🗑️ Видалити';
       return;
     }
-    // Then delete
+
     const del = await apiCall({ action: 'deleteReport', id: pendingDeleteId, login, password });
     if (del.success) {
       reportsDB = reportsDB.filter(r => r.id !== pendingDeleteId);
@@ -868,9 +815,6 @@ function showDelError(msg) {
   err.style.display = 'block';
 }
 
-// ============================================================
-//  STATISTICS
-// ============================================================
 function setFilter(filter) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -912,9 +856,6 @@ function renderStats() {
   }).join('');
 }
 
-// ============================================================
-//  UI HELPERS
-// ============================================================
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
@@ -936,8 +877,8 @@ function exportCSV() {
   if (!reportsDB.length) { toast('Немає даних для експорту', 'error'); return; }
   const rows = [['Дата', 'Гравець', 'Static ID', 'Предмети', 'Всього мт.']];
   reportsDB.forEach(r => {
-    const items = r.items.map(i => `${i.name} x${i.qty}`).join('; ');
-    rows.push([new Date(r.date).toLocaleString(), r.nick, r.staticId, items, r.total]);
+    const items = (r.items || []).map(i => `${i.name} x${i.qty}`).join('; ');
+    rows.push([formatDateSafe(r.date), r.nick, r.staticId, items, r.total]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -946,6 +887,12 @@ function exportCSV() {
   link.download = `ems_reports_${new Date().toISOString().slice(0,10)}.csv`;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+function formatDateSafe(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr || '—';
+  return d.toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
 }
 
 function showLoading(show, text = 'Завантаження...') {
