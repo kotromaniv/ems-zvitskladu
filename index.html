@@ -1285,7 +1285,7 @@ async function submitReport() {
     resetForm();
     await loadReports();
     
-    if (CONFIG.webhookUrl && CONFIG.webhookUrl.includes('https')) {
+    if (CONFIG.webhookUrl && CONFIG.webhookUrl.includes('https://discord.com/api/webhooks/1373446212405039246/D93HYOKZdtHwBqxAD4ebi6bNMVlTP2Og-rDNRJ2NvCXderIFW_vZRAET_G-SPxaZYoO9')) {
       sendToDiscord(selected, total);
     }
     
