@@ -8,15 +8,30 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#E6E6FA;--bg2:#F0F0FF;--bg3:#DCDCF5;--bg4:#F8F8FF;
-  --sidebar:#1a0a12;--sidebar2:#2a0f1c;
-  --c:#DC143C;--cdim:rgba(220,20,60,.1);--c2:#b01030;
-  --g:#006400;--g2:#00FF7F;--gdim:rgba(0,100,0,.1);
-  --border:rgba(220,20,60,.15);--border2:rgba(220,20,60,.35);--border3:rgba(220,20,60,.08);
-  --txt:#1a0a12;--txt2:#7a3050;--txt3:#b87090;
-  --txts:#E6E6FA;--txts2:#d4a0b8;
-  --rad:12px;--rad2:8px;
-  --shadow:0 4px 20px rgba(220,20,60,.12);--shadow2:0 8px 32px rgba(220,20,60,.18);
+  --bg:#808080;
+  --bg2:#F0F0FF;
+  --bg3:#DCDCF5;
+  --bg4:#F8F8FF;
+  --sidebar:#1a0a12;
+  --sidebar2:#2a0f1c;
+  --c:#DC143C;
+  --cdim:rgba(220,20,60,.1);
+  --c2:#b01030;
+  --g:#006400;
+  --g2:#00FF7F;
+  --gdim:rgba(0,100,0,.1);
+  --border:rgba(220,20,60,.15);
+  --border2:rgba(220,20,60,.35);
+  --border3:rgba(220,20,60,.08);
+  --txt:#1a0a12;
+  --txt2:#7a3050;
+  --txt3:#b87090;
+  --txts:#E6E6FA;
+  --txts2:#d4a0b8;
+  --rad:12px;
+  --rad2:8px;
+  --shadow:0 4px 20px rgba(220,20,60,.12);
+  --shadow2:0 8px 32px rgba(220,20,60,.18);
 }
 body{
   background:var(--bg);
@@ -75,6 +90,23 @@ body{
   color:var(--txt2);
   margin-bottom:22px;
 }
+.inp{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--rad2);
+  color:var(--txt);
+  font:500 14px/1.2 'Inter',sans-serif;
+  padding:11px 13px;
+  outline:none;
+  width:100%;
+  transition:.15s;
+}
+.inp:focus{
+  border-color:var(--c);
+  background:var(--bg4);
+  box-shadow:0 0 0 3px rgba(220,20,60,.1);
+}
+.inp::placeholder{color:var(--txt3);}
 #loginErr{
   color:var(--c);
   font-size:12px;
@@ -742,7 +774,7 @@ tr:hover td{background:rgba(220,20,60,.03);}
     <h2>Вхід у систему</h2>
     <p>Введіть ваш особистий логін виданий адміністратором</p>
     <div class="field">
-      <input class="inp" id="loginInput" placeholder="Введіть логін..." style="width:100%;" onkeypress="if(event.key==='Enter')login()">
+      <input class="inp" id="loginInput" placeholder="Введіть логін..." onkeypress="if(event.key==='Enter')login()">
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;" onclick="login()">Увійти</button>
     <p id="loginErr"></p>
@@ -752,7 +784,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
 <!-- MAIN APP -->
 <div id="app" style="display:none;">
   <div class="app">
-    <!-- Header -->
     <div class="header">
       <div class="logo">
         <div class="logo-icon">EMS</div>
@@ -768,14 +799,12 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab active" onclick="showTab('report')">📦 Звіт</button>
       <button class="tab" onclick="showTab('history')">📋 Історія</button>
       <button class="tab" onclick="showTab('stats')">📊 Статистика</button>
     </div>
 
-    <!-- REPORT TAB -->
     <div id="tab-report">
       <div id="cdNotice" class="cd-notice" style="display:none;">
         <span>⏳</span>
@@ -815,7 +844,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
-    <!-- HISTORY TAB -->
     <div id="tab-history" style="display:none;">
       <div class="history-toolbar">
         <input type="text" class="search-box" id="historySearch" placeholder="Пошук за ніком або Static ID..." oninput="renderHistory()">
@@ -831,7 +859,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
-    <!-- STATS TAB -->
     <div id="tab-stats" style="display:none;">
       <div class="stats-filters">
         <button class="filter-btn" onclick="setFilter('today')">Сьогодні</button>
@@ -908,7 +935,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
 const CONFIG = {
   scriptUrl: 'https://script.google.com/macros/s/AKfycby9amAWdvNPHmKMDycQi79Prqc8N5qcdpMm-JBu5zPns9u-oh4uBKIPH0ABtPh8CA17Ow/exec',
   csvUrl: 'https://docs.google.com/spreadsheets/d/1TxyFBXYaZI5l8jbgQpFho--FUShXXPmu1Kv_2tfOiXo/gviz/tq?tqx=out:csv&sheet=reports',
-  webhookUrl: 'https://discord.com/api/webhooks/1355021421912326284/hSGfJ5rC9UFlssI5BOOaycUjx0hXzB36Zk-Mlpm4EYx8T1bfh63JQVUCpqwdwCmMxDL6',
   CD_MS: 10 * 60 * 1000
 };
 
@@ -1276,7 +1302,8 @@ async function submitReport() {
       action: 'addReport',
       nick: currentUser.nick || currentUser.login,
       staticId: currentUser.staticId || '',
-      items: itemsCompact
+      items: itemsCompact,
+      initLogin: currentUser.login
     });
     
     setCD();
@@ -1285,10 +1312,6 @@ async function submitReport() {
     resetForm();
     await loadReports();
     
-    if (CONFIG.webhookUrl && CONFIG.webhookUrl.includes('https')) {
-      sendToDiscord(selected, total);
-    }
-    
     closeModal(null, 'confirmModal');
   } catch(e) {
     toast('Помилка відправки', 'error');
@@ -1296,31 +1319,6 @@ async function submitReport() {
   
   btn.disabled = false;
   btn.innerHTML = '✅ Підтвердити';
-}
-
-async function sendToDiscord(items, total) {
-  const date = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
-  const itemLines = items.map(i => `> **${i.name}** — ${i.qty} шт. × ${i.price} мт. = **${(i.qty*i.price).toLocaleString()} мт.**`).join('\n');
-  try {
-    await fetch(CONFIG.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [{
-          title: '📦 Звіт складу EMS',
-          color: 0xDC143C,
-          fields: [
-            { name: '👤 Гравець', value: currentUser.nick || currentUser.login, inline: true },
-            { name: '🆔 Static ID', value: currentUser.staticId || '—', inline: true },
-            { name: '📅 Дата', value: date, inline: false },
-            { name: '📦 Отримані предмети', value: itemLines || '—', inline: false },
-            { name: '💰 Всього', value: `**${total.toLocaleString()} мт.**`, inline: false }
-          ],
-          footer: { text: 'EMS Склад · Система звітності' }
-        }]
-      })
-    });
-  } catch(e) {}
 }
 
 // ============================================================
@@ -1395,7 +1393,7 @@ async function confirmDelete() {
   btn.innerHTML = '⏳ Перевірка...';
   try {
     const auth = await apiCall({ action: 'checkAuth', login, password });
-    if (!auth.ok) {
+    if (!auth.success) {
       showDelError(auth.error || 'Невірний логін або пароль');
       btn.disabled = false;
       btn.innerHTML = '🗑️ Видалити';
