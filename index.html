@@ -211,14 +211,17 @@ tr:hover td{background:rgba(220,20,60,.03);}
   <div class="login-box">
     <div class="login-logo">
       <div class="logo-sq">EMS</div>
-      <div><div style="font-size:16px;font-weight:800;color:var(--txt);">EMS Фракція</div><div style="font-size:11px;color:var(--txt2);">Звіт складу</div></div>
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--txt);">EMS Фракція</div>
+        <div style="font-size:11px;color:var(--txt2);">Звіт складу</div>
+      </div>
     </div>
     <h2>Вхід у систему</h2>
     <p>Введіть ваш особистий логін виданий адміністратором</p>
     <div class="field">
-      <input class="inp" id="loginInput" placeholder="Введіть логін..." onkeypress="if(event.key==='Enter')login()">
+      <input class="inp" id="loginInput" placeholder="Введіть логін..." onkeypress="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.75rem;" onclick="login()">Увійти →</button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.75rem;" onclick="doLogin()">Увійти →</button>
     <p id="loginErr"></p>
   </div>
 </div>
@@ -237,7 +240,7 @@ tr:hover td{background:rgba(220,20,60,.03);}
         <div class="user-avatar" id="userAvatar">?</div>
         <div class="user-name" id="userName">—</div>
         <div class="admin-badge" id="adminBadge" style="display:none;">Admin</div>
-        <div class="user-logout" onclick="logout()">🚪</div>
+        <div class="user-logout" onclick="logout()" title="Вийти">🚪</div>
       </div>
     </div>
 
@@ -247,13 +250,13 @@ tr:hover td{background:rgba(220,20,60,.03);}
       <button class="tab" onclick="showTab('stats')">📊 Статистика</button>
     </div>
 
+    <!-- TAB: REPORT -->
     <div id="tab-report">
       <div id="cdNotice" class="cd-notice" style="display:none;">
         <span style="color:var(--c);">⏳</span>
         <span style="color:var(--txt2);">Повторний звіт можна надіслати через:</span>
         <span class="timer" id="cdTimer">0:00</span>
       </div>
-
       <div class="card">
         <div class="card-title">👤 Інформація про гравця</div>
         <div class="form-row">
@@ -261,7 +264,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
           <div class="field"><label>Static ID</label><input type="text" id="playerStatic" readonly placeholder="Автоматично"></div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">📦 Вибір предметів</div>
         <div class="cat-tabs">
@@ -273,7 +275,6 @@ tr:hover td{background:rgba(220,20,60,.03);}
         <div id="cat-uniform" class="cat-panel"><div class="items-grid" id="grid-uniform"></div></div>
         <div id="cat-armor" class="cat-panel"><div class="items-grid" id="grid-armor"></div></div>
       </div>
-
       <div class="report-footer">
         <div class="footer-stats">
           <div class="count" id="selectedCount">Обрано предметів: 0</div>
@@ -286,82 +287,88 @@ tr:hover td{background:rgba(220,20,60,.03);}
       </div>
     </div>
 
+    <!-- TAB: HISTORY -->
     <div id="tab-history" style="display:none;">
       <div class="history-toolbar">
         <input type="text" class="search-box" id="historySearch" placeholder="Пошук за ніком або Static ID..." oninput="renderHistory()">
         <button class="btn btn-secondary" onclick="exportCSV()">📎 CSV</button>
-        <button class="btn btn-secondary" onclick="loadReports()">🔄 Оновити</button>
+        <button class="btn btn-secondary" onclick="loadReports(true)">🔄 Оновити</button>
       </div>
       <div class="table-wrapper">
         <table>
-          <thead><tr><th>Дата</th><th>Гравець</th><th>Static ID</th><th>Матеріали</th><th></th></tr></thead>
+          <thead><tr><th>Дата (Київ)</th><th>Гравець</th><th>Static ID</th><th>Матеріали</th><th></th></tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
         <div id="historyEmpty" class="empty-state" style="display:none;">Записів не знайдено</div>
+        <div id="historyLoading" class="empty-state">⏳ Завантаження...</div>
       </div>
     </div>
 
+    <!-- TAB: STATS -->
     <div id="tab-stats" style="display:none;">
       <div class="stats-filters">
-        <button class="filter-btn" onclick="setFilter('today')">Сьогодні</button>
-        <button class="filter-btn" onclick="setFilter('7d')">7 днів</button>
-        <button class="filter-btn active" onclick="setFilter('30d')">30 днів</button>
-        <button class="filter-btn" onclick="setFilter('month')">Цей місяць</button>
+        <button class="filter-btn" onclick="setFilter('today',this)">Сьогодні</button>
+        <button class="filter-btn" onclick="setFilter('7d',this)">7 днів</button>
+        <button class="filter-btn active" onclick="setFilter('30d',this)">30 днів</button>
+        <button class="filter-btn" onclick="setFilter('month',this)">Цей місяць</button>
       </div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-info"><div class="label">Всього звітів</div><div class="value" id="statTotal">0</div></div></div>
-        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-info"><div class="label">Матеріалів видано</div><div class="value" id="statMats">0</div></div></div>
-        <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-info"><div class="label">Середня видача</div><div class="value" id="statAvg">0</div></div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-info"><div class="label">Всього звітів</div><div class="value" id="statTotal">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-info"><div class="label">Матеріалів видано</div><div class="value" id="statMats">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-info"><div class="label">Середня видача</div><div class="value" id="statAvg">—</div></div></div>
       </div>
       <div class="top-list">
         <div class="top-header">🏆 Топ-10 активних гравців</div>
-        <div id="topPlayers"></div>
+        <div id="topPlayers"><div class="empty-state">⏳ Завантаження...</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="confirmModal" class="modal-overlay" onclick="closeModal(event,'confirmModal')">
+<!-- MODAL: CONFIRM -->
+<div id="confirmModal" class="modal-overlay" onclick="closeModalClick(event,'confirmModal')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header"><h2>Підтвердження звіту</h2><button class="modal-close" onclick="closeModal(null,'confirmModal')">✕</button></div>
+    <div class="modal-header"><h2>Підтвердження звіту</h2><button class="modal-close" onclick="closeModal('confirmModal')">✕</button></div>
     <div class="warn-box">
       <div class="warn-title">⚠️ Перевірте дані перед відправкою</div>
-      <div class="warn-desc">Після підтвердження звіт буде зафіксовано. Звичайні гравці мають 10-хвилинний кулдаун між відправками.</div>
+      <div class="warn-desc">Після підтвердження звіт буде зафіксовано. На вас буде накладено 10-хвилинний кулдаун між відправками.</div>
     </div>
     <div id="confirmItems" class="confirm-items"></div>
     <div class="confirm-total"><span>Всього:</span><span id="confirmTotal" style="color:var(--c);font-weight:800;"></span></div>
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
-      <button class="btn btn-secondary" onclick="closeModal(null,'confirmModal')">Скасувати</button>
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Скасувати</button>
       <button class="btn btn-primary" id="confirmSubmitBtn" onclick="submitReport()">✅ Підтвердити</button>
     </div>
   </div>
 </div>
 
-<div id="viewModal" class="modal-overlay" onclick="closeModal(event,'viewModal')">
+<!-- MODAL: VIEW -->
+<div id="viewModal" class="modal-overlay" onclick="closeModalClick(event,'viewModal')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header"><h2>Деталі звіту</h2><button class="modal-close" onclick="closeModal(null,'viewModal')">✕</button></div>
-    <div class="modal-row"><span class="modal-label">Гравець</span><span class="modal-value" id="viewNick"></span></div>
-    <div class="modal-row"><span class="modal-label">Static ID</span><span class="modal-value" id="viewStatic"></span></div>
-    <div class="modal-row"><span class="modal-label">Дата</span><span class="modal-value" id="viewDate"></span></div>
+    <div class="modal-header"><h2>Деталі звіту</h2><button class="modal-close" onclick="closeModal('viewModal')">✕</button></div>
+    <div class="modal-row"><span class="modal-label">Гравець</span><span class="modal-value" id="viewNick">—</span></div>
+    <div class="modal-row"><span class="modal-label">Static ID</span><span class="modal-value" id="viewStatic">—</span></div>
+    <div class="modal-row"><span class="modal-label">Дата (Київ)</span><span class="modal-value" id="viewDate">—</span></div>
     <div class="modal-items" id="viewItems"></div>
-    <div class="modal-total"><span>Всього:</span><span class="modal-total-value" id="viewTotal"></span></div>
+    <div class="modal-total"><span>Всього:</span><span class="modal-total-value" id="viewTotal">—</span></div>
   </div>
 </div>
 
-<div id="deleteModal" class="modal-overlay" onclick="closeModal(event,'deleteModal')">
+<!-- MODAL: DELETE -->
+<div id="deleteModal" class="modal-overlay" onclick="closeModalClick(event,'deleteModal')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header"><h2>Підтвердження видалення</h2><button class="modal-close" onclick="closeModal(null,'deleteModal')">✕</button></div>
+    <div class="modal-header"><h2>Підтвердження видалення</h2><button class="modal-close" onclick="closeModal('deleteModal')">✕</button></div>
     <div class="warn-box">
-      <div class="warn-title">⚠️ Лише для адміністраторів</div>
+      <div class="warn-title">⚠️ Тільки для адміністраторів</div>
       <div class="warn-desc">Введіть логін та пароль адміністратора для підтвердження видалення запису.</div>
     </div>
     <div class="modal-auth">
-      <div class="field"><label>Логін адміна</label><input type="text" id="delLogin" placeholder="Логін..."></div>
+      <div class="field"><label>Логін</label><input type="text" id="delLogin" placeholder="Логін..."></div>
       <div class="field"><label>Пароль</label><input type="password" id="delPass" placeholder="Пароль..."></div>
     </div>
     <div id="delError" style="color:var(--c);font-size:0.75rem;margin-bottom:0.75rem;display:none;padding:0.5rem;background:var(--cdim);border-radius:6px;border:1px solid var(--border);"></div>
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
-      <button class="btn btn-secondary" onclick="closeModal(null,'deleteModal')">Скасувати</button>
+      <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Скасувати</button>
       <button class="btn btn-danger" id="delConfirmBtn" onclick="confirmDelete()">🗑️ Видалити</button>
     </div>
   </div>
@@ -371,222 +378,206 @@ tr:hover td{background:rgba(220,20,60,.03);}
 <div id="loadingOverlay" class="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Завантаження...</div></div>
 
 <script>
-const CONFIG = {
-  scriptUrl: 'https://script.google.com/macros/s/AKfycbwr6W8RsrGwU7tb9C9ppulYWHTsQJKIihuSYXI8JtaenhASSdFF-rcnVzpEk5Zfm2hz/exec',
-  CD_MS: 10 * 60 * 1000
-};
+// ══ CONFIG ══════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwr6W8RsrGwU7tb9C9ppulYWHTsQJKIihuSYXI8JtaenhASSdFF-rcnVzpEk5Zfm2hz/exec';
+const CD_MS      = 10 * 60 * 1000;
+// ════════════════════════════════════════════════════════════
 
 const ITEMS = {
   medical: [
-    { id: 'medkit', name: 'Велика аптечка', price: 75 },
-    { id: 'adrenaline', name: 'Адреналін', price: 50 }
+    { id:'medkit',     name:'Велика аптечка', price:75  },
+    { id:'adrenaline', name:'Адреналін',       price:50  }
   ],
   uniform: [
-    { id: 'form1', name: 'Форма №1', price: 300 },
-    { id: 'form2', name: 'Форма №2', price: 300 },
-    { id: 'form3', name: 'Форма №3', price: 300 },
-    { id: 'form4', name: 'Форма №4', price: 300 },
-    { id: 'form5', name: 'Форма №5', price: 300 }
+    { id:'form1', name:'Форма №1', price:300 },
+    { id:'form2', name:'Форма №2', price:300 },
+    { id:'form3', name:'Форма №3', price:300 },
+    { id:'form4', name:'Форма №4', price:300 },
+    { id:'form5', name:'Форма №5', price:300 }
   ],
   armor: [
-    { id: 'armor_medic', name: 'Medic', price: 100 },
-    { id: 'armor_ambulance', name: 'Ambulance', price: 100 },
-    { id: 'armor_head', name: 'Head', price: 100 },
-    { id: 'armor_paramedic', name: 'Paramedic', price: 100 },
-    { id: 'armor_staff', name: 'Staff', price: 100 }
+    { id:'armor_medic',     name:'Medic',     price:100 },
+    { id:'armor_ambulance', name:'Ambulance', price:100 },
+    { id:'armor_head',      name:'Head',      price:100 },
+    { id:'armor_paramedic', name:'Paramedic', price:100 },
+    { id:'armor_staff',     name:'Staff',     price:100 }
   ]
 };
 const ALL_ITEMS = [...ITEMS.medical, ...ITEMS.uniform, ...ITEMS.armor];
 
-let currentUser = null;
-let reportsDB = [];
-let pendingDeleteId = null;
-let currentFilter = '30d';
-let cdInterval = null;
-let qtyState = {};
+let currentUser  = null;
+let reportsDB    = [];
+let pendingDelId = null;
+let curFilter    = '30d';
+let cdInterval   = null;
+let qtyState     = {};
 
-function init() {
-  const saved = localStorage.getItem('ems_user');
+// ── INIT ─────────────────────────────────────────────────
+(function init() {
+  const saved = localStorage.getItem('ems_wh_user');
   if (saved) {
     try {
-      const user = JSON.parse(saved);
-      if (user && user.login) {
-        currentUser = user;
+      const u = JSON.parse(saved);
+      if (u && u.login) {
+        currentUser = u;
         showApp();
-        loadReports();
+        loadReports(false);
         checkCD();
         return;
       }
-    } catch(e) {}
+    } catch(_) {}
   }
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-}
+})();
 
-async function login() {
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin() {
   const loginVal = document.getElementById('loginInput').value.trim();
-  if (!loginVal) { showLoginError('Введіть логін'); return; }
+  if (!loginVal) { showLoginErr('Введіть логін'); return; }
   showLoading(true, 'Перевірка...');
   try {
-    const res = await apiCall({ action: 'login', login: loginVal });
+    const res = await apiCall({ action:'login', login:loginVal });
     if (res.success && res.user) {
       currentUser = res.user;
-      localStorage.setItem('ems_user', JSON.stringify(currentUser));
+      localStorage.setItem('ems_wh_user', JSON.stringify(currentUser));
       showApp();
-      await loadReports();
+      await loadReports(false);
       checkCD();
     } else {
-      showLoginError(res.error || 'Невірний логін');
+      showLoginErr(res.error || 'Невірний логін. Зверніться до адміністратора.');
     }
   } catch(e) {
-    showLoginError('Помилка з\'єднання з сервером');
+    showLoginErr('Помилка з\'єднання з сервером');
   }
   showLoading(false);
 }
-
+function showLoginErr(msg) {
+  const e = document.getElementById('loginErr');
+  e.textContent = msg;
+  e.style.display = 'block';
+  setTimeout(() => { e.style.display = 'none'; }, 4000);
+}
 function logout() {
   currentUser = null;
-  localStorage.removeItem('ems_user');
+  reportsDB   = [];
+  localStorage.removeItem('ems_wh_user');
+  if (cdInterval) clearInterval(cdInterval);
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginInput').value = '';
-  if (cdInterval) clearInterval(cdInterval);
 }
-
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const displayName = currentUser.nick || currentUser.login;
-  document.getElementById('userAvatar').textContent = displayName[0].toUpperCase();
-  document.getElementById('userName').textContent = displayName;
-  document.getElementById('playerNick').value = currentUser.nick || '';
-  document.getElementById('playerStatic').value = currentUser.staticId || '';
-
-  const badge = document.getElementById('adminBadge');
-  badge.style.display = currentUser.isAdmin ? 'flex' : 'none';
-
-  ALL_ITEMS.forEach(item => { qtyState[item.id] = 0; });
+  const nick = currentUser.nick || currentUser.login;
+  document.getElementById('userAvatar').textContent = nick[0].toUpperCase();
+  document.getElementById('userName').textContent   = nick;
+  document.getElementById('playerNick').value    = currentUser.nick     || '';
+  document.getElementById('playerStatic').value  = currentUser.staticId || '';
+  document.getElementById('adminBadge').style.display = currentUser.isAdmin ? 'flex' : 'none';
+  ALL_ITEMS.forEach(i => { qtyState[i.id] = 0; });
   buildAllGrids();
   updateFooter();
 }
 
-function showLoginError(msg) {
-  const err = document.getElementById('loginErr');
-  err.textContent = msg;
-  err.style.display = 'block';
-  setTimeout(() => err.style.display = 'none', 3500);
-}
-
+// ── API ───────────────────────────────────────────────────
 async function apiCall(params) {
-  const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url);
-  return res.json();
-}
-
-async function apiWrite(params) {
-  const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url);
-  return res.json();
-}
-
-async function loadReports() {
-  showLoading(true, 'Завантаження даних...');
-  try {
-    const res = await apiCall({ action: 'getReports' });
-
-    if (!res || !res.success) {
-      throw new Error(res?.error || 'Не вдалося отримати історію');
-    }
-
-    reportsDB = normalizeReports(res.records || []);
-    reportsDB.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    renderHistory();
-    renderStats();
-  } catch (e) {
-    console.error('loadReports error:', e);
-    toast('Помилка завантаження даних', 'error');
-    reportsDB = [];
-    renderHistory();
-    renderStats();
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const res  = await fetch(url, { cache:'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const ct = (res.headers.get('content-type') || '').toLowerCase();
+  if (!ct.includes('application/json')) {
+    const txt = await res.text();
+    throw new Error('NON_JSON: ' + txt.slice(0,100));
   }
-  showLoading(false);
+  return res.json();
 }
 
-function normalizeReports(records) {
-  return records.map(r => {
+// ── LOAD REPORTS ─────────────────────────────────────────
+async function loadReports(forceShow = true) {
+  if (forceShow) showLoading(true, 'Завантаження даних...');
+  document.getElementById('historyLoading').style.display = 'block';
+  document.getElementById('historyBody').innerHTML = '';
+  document.getElementById('historyEmpty').style.display = 'none';
+  try {
+    const res = await apiCall({ action:'getReports' });
+    // Підтримуємо обидва формати: { success, records } та { ok, reports }
+    const raw = res.records || res.reports || [];
+    reportsDB = normalizeReports(raw);
+    reportsDB.sort((a,b) => new Date(b.date) - new Date(a.date));
+    document.getElementById('historyLoading').style.display = 'none';
+    renderHistory();
+    renderStats();
+  } catch(e) {
+    console.error('loadReports:', e);
+    toast('Помилка завантаження даних', 'error');
+    document.getElementById('historyLoading').style.display = 'none';
+    document.getElementById('historyEmpty').style.display = 'block';
+  }
+  if (forceShow) showLoading(false);
+}
+
+function normalizeReports(raw) {
+  return (raw || []).map(r => {
     let items = [];
-
     try {
-      if (Array.isArray(r.items)) {
-        items = r.items;
-      } else if (typeof r.items === 'string' && r.items.trim()) {
-        items = JSON.parse(r.items);
-      }
-    } catch (e) {
-      items = [];
-    }
-
+      if (Array.isArray(r.items))           items = r.items;
+      else if (typeof r.items === 'string') items = JSON.parse(r.items);
+    } catch(_) { items = []; }
     items = items.map(i => ({
-      id: i.id || '',
-      name: i.name || '',
+      id:    i.id    || '',
+      name:  i.name  || i.id || '',
       price: Number(i.price) || 0,
-      qty: Number(i.qty) || 0
+      qty:   Number(i.qty)   || 0
     }));
-
     return {
-      id: String(r.id || ''),
-      date: r.date || '',
-      nick: String(r.nick || ''),
+      id:       String(r.id       || ''),
+      date:     r.date            || '',
+      nick:     String(r.nick     || ''),
       staticId: String(r.staticId || ''),
-      items: items,
-      total: Number(r.total) || 0,
-      login: String(r.login || '')
+      items,
+      total:    Number(r.total)   || 0,
+      login:    String(r.login    || '')
     };
   });
 }
 
-function getCDKey() { return 'ems_cd_' + (currentUser?.login || ''); }
+// ── COOLDOWN ──────────────────────────────────────────────
+function getCDKey()  { return 'ems_wh_cd_' + (currentUser?.login || ''); }
 function getCDRemaining() {
   if (currentUser?.isAdmin) return 0;
-  const val = localStorage.getItem(getCDKey());
-  if (!val) return 0;
-  return Math.max(0, CONFIG.CD_MS - (Date.now() - Number(val)));
+  const v = localStorage.getItem(getCDKey());
+  if (!v) return 0;
+  return Math.max(0, CD_MS - (Date.now() - Number(v)));
 }
 function setCD() {
-  if (currentUser?.isAdmin) return;
-  localStorage.setItem(getCDKey(), String(Date.now()));
+  if (!currentUser?.isAdmin) localStorage.setItem(getCDKey(), String(Date.now()));
 }
 function checkCD() {
   const rem = getCDRemaining();
   const notice = document.getElementById('cdNotice');
-  const submitBtn = document.getElementById('submitBtn');
+  const btn    = document.getElementById('submitBtn');
   if (rem > 0) {
     notice.style.display = 'flex';
-    submitBtn.disabled = true;
+    btn.disabled = true;
     updateCDTimer(rem);
     if (cdInterval) clearInterval(cdInterval);
     cdInterval = setInterval(() => {
       const r = getCDRemaining();
-      if (r <= 0) {
-        clearInterval(cdInterval);
-        notice.style.display = 'none';
-        submitBtn.disabled = false;
-      } else {
-        updateCDTimer(r);
-      }
+      if (r <= 0) { clearInterval(cdInterval); notice.style.display='none'; btn.disabled=false; }
+      else updateCDTimer(r);
     }, 1000);
   } else {
     notice.style.display = 'none';
-    submitBtn.disabled = false;
+    btn.disabled = false;
   }
 }
 function updateCDTimer(ms) {
-  const m = Math.floor(ms / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  document.getElementById('cdTimer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const m = Math.floor(ms/60000);
+  const s = Math.floor((ms%60000)/1000);
+  document.getElementById('cdTimer').textContent = m + ':' + String(s).padStart(2,'0');
 }
 
+// ── ITEMS / FORM ──────────────────────────────────────────
 function buildAllGrids() {
   for (const [cat, items] of Object.entries(ITEMS)) {
     const grid = document.getElementById('grid-' + cat);
@@ -594,7 +585,7 @@ function buildAllGrids() {
     grid.innerHTML = items.map(item => `
       <div class="item-card" id="card-${item.id}">
         <div class="item-info">
-          <div class="item-name">${escapeHtml(item.name)}</div>
+          <div class="item-name">${esc(item.name)}</div>
           <div class="item-price">${item.price} мт / шт</div>
           <div class="item-sub" id="sub-${item.id}"></div>
         </div>
@@ -603,132 +594,126 @@ function buildAllGrids() {
           <input class="qty-val" type="number" min="0" value="0" id="qty-${item.id}" onchange="onQtyChange('${item.id}')">
           <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
         </div>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 }
-
-function changeQty(id, delta) {
-  const input = document.getElementById('qty-' + id);
-  let val = (parseInt(input.value) || 0) + delta;
-  if (val < 0) val = 0;
-  input.value = val;
+function showCategory(cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.cat-btn[data-cat="${cat}"]`).classList.add('active');
+  document.querySelectorAll('.cat-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('cat-' + cat).classList.add('active');
+}
+function changeQty(id, d) {
+  const inp = document.getElementById('qty-' + id);
+  let v = (parseInt(inp.value) || 0) + d;
+  if (v < 0) v = 0;
+  inp.value = v;
   onQtyChange(id);
 }
-
 function onQtyChange(id) {
-  const input = document.getElementById('qty-' + id);
-  let val = parseInt(input.value) || 0;
-  if (val < 0) val = 0;
-  input.value = val;
-  qtyState[id] = val;
+  const inp = document.getElementById('qty-' + id);
+  let v = parseInt(inp.value) || 0;
+  if (v < 0) v = 0;
+  inp.value = v;
+  qtyState[id] = v;
   const item = ALL_ITEMS.find(i => i.id === id);
   const card = document.getElementById('card-' + id);
-  const sub = document.getElementById('sub-' + id);
-  if (val > 0) {
+  const sub  = document.getElementById('sub-' + id);
+  if (v > 0) {
     card.classList.add('selected');
-    sub.textContent = (val * item.price).toLocaleString() + ' мт.';
+    sub.textContent = (v * item.price).toLocaleString('uk-UA') + ' мт.';
   } else {
     card.classList.remove('selected');
     sub.textContent = '';
   }
   updateFooter();
 }
-
 function updateFooter() {
   let count = 0, total = 0;
-  ALL_ITEMS.forEach(item => {
-    const qty = qtyState[item.id] || 0;
-    if (qty > 0) { count += qty; total += qty * item.price; }
+  ALL_ITEMS.forEach(i => {
+    const q = qtyState[i.id] || 0;
+    if (q > 0) { count += q; total += q * i.price; }
   });
-  document.getElementById('selectedCount').textContent = `Обрано предметів: ${count}`;
-  document.getElementById('selectedTotal').textContent = total.toLocaleString() + ' мт.';
+  document.getElementById('selectedCount').textContent = 'Обрано предметів: ' + count;
+  document.getElementById('selectedTotal').textContent = total.toLocaleString('uk-UA') + ' мт.';
 }
-
 function resetForm() {
-  ALL_ITEMS.forEach(item => {
-    const input = document.getElementById('qty-' + item.id);
-    if (input) input.value = 0;
-    qtyState[item.id] = 0;
-    const card = document.getElementById('card-' + item.id);
+  ALL_ITEMS.forEach(i => {
+    qtyState[i.id] = 0;
+    const inp  = document.getElementById('qty-' + i.id);
+    const card = document.getElementById('card-' + i.id);
+    const sub  = document.getElementById('sub-' + i.id);
+    if (inp)  inp.value = 0;
     if (card) card.classList.remove('selected');
-    const sub = document.getElementById('sub-' + item.id);
-    if (sub) sub.textContent = '';
+    if (sub)  sub.textContent = '';
   });
   updateFooter();
 }
-
 function getSelectedItems() {
-  return ALL_ITEMS.filter(item => (qtyState[item.id] || 0) > 0)
-    .map(item => ({ ...item, qty: qtyState[item.id] }));
+  return ALL_ITEMS.filter(i => (qtyState[i.id]||0) > 0)
+                  .map(i => ({ ...i, qty: qtyState[i.id] }));
 }
 
+// ── CONFIRM MODAL ─────────────────────────────────────────
 function openConfirmModal() {
-  if (getCDRemaining() > 0) { toast('Зачекайте завершення кулдауну', 'error'); return; }
-  const selected = getSelectedItems();
-  if (!selected.length) { toast('Оберіть хоча б один предмет', 'error'); return; }
-
+  if (getCDRemaining() > 0) { toast('Зачекайте завершення кулдауну','error'); return; }
+  const sel = getSelectedItems();
+  if (!sel.length) { toast('Оберіть хоча б один предмет','error'); return; }
   let total = 0;
-  let itemsHtml = '';
-  selected.forEach(item => {
-    const sub = item.price * item.qty;
+  let html  = '';
+  sel.forEach(i => {
+    const sub = i.price * i.qty;
     total += sub;
-    itemsHtml += `<div class="confirm-item"><span>${escapeHtml(item.name)} ×${item.qty}</span><span style="color:var(--c);">${sub.toLocaleString()} мт.</span></div>`;
+    html  += `<div class="confirm-item"><span>${esc(i.name)} ×${i.qty}</span><span style="color:var(--c);">${sub.toLocaleString('uk-UA')} мт.</span></div>`;
   });
-  document.getElementById('confirmItems').innerHTML = itemsHtml;
-  document.getElementById('confirmTotal').textContent = total.toLocaleString() + ' мт.';
+  document.getElementById('confirmItems').innerHTML = html;
+  document.getElementById('confirmTotal').textContent = total.toLocaleString('uk-UA') + ' мт.';
   openModal('confirmModal');
 }
 
+// ── SUBMIT ────────────────────────────────────────────────
 async function submitReport() {
   if (!currentUser) return;
-  if (getCDRemaining() > 0) { toast('Зачекайте завершення кулдауну', 'error'); return; }
-  const selected = getSelectedItems();
-  if (!selected.length) { toast('Оберіть хоча б один предмет', 'error'); return; }
-
-  const itemsCompact = selected.map(i => `${i.id}:${i.qty}`).join(',');
-
+  if (getCDRemaining() > 0) { toast('Кулдаун ще не завершено','error'); return; }
+  const sel = getSelectedItems();
+  if (!sel.length) { toast('Оберіть хоча б один предмет','error'); return; }
   const btn = document.getElementById('confirmSubmitBtn');
   btn.disabled = true;
   btn.innerHTML = '⏳ Відправка...';
-
   try {
-    const res = await apiWrite({
-      action: 'addReport',
-      nick: currentUser.nick || currentUser.login,
-      staticId: currentUser.staticId || '',
-      items: itemsCompact,
+    const res = await apiCall({
+      action:    'addReport',
+      nick:      currentUser.nick || currentUser.login,
+      staticId:  currentUser.staticId || '',
       initLogin: currentUser.login,
-      isAdmin: currentUser.isAdmin ? '1' : '0'
+      isAdmin:   currentUser.isAdmin ? '1' : '0',
+      items:     sel.map(i => `${i.id}:${i.qty}`).join(',')
     });
-
-    if (res && res.success) {
+    if (res.success) {
       setCD();
       checkCD();
-      toast('Звіт успішно відправлено!', 'success');
+      toast('Звіт успішно відправлено! ✅','success');
       resetForm();
-      await loadReports();
-      closeModal(null, 'confirmModal');
+      closeModal('confirmModal');
+      await loadReports(false); // оновити без спінера
     } else {
-      toast(res?.error || 'Помилка відправки', 'error');
+      toast(res.error || 'Помилка відправки','error');
     }
   } catch(e) {
-    toast('Помилка з\'єднання', 'error');
+    toast('Помилка з\'єднання','error');
   }
-
   btn.disabled = false;
   btn.innerHTML = '✅ Підтвердити';
 }
 
+// ── HISTORY ───────────────────────────────────────────────
 function renderHistory() {
-  const search = (document.getElementById('historySearch')?.value || '').toLowerCase();
-  let filtered = reportsDB;
-  if (search) {
-    filtered = reportsDB.filter(r =>
-      r.nick.toLowerCase().includes(search) ||
-      r.staticId.toLowerCase().includes(search)
-    );
-  }
+  const q      = (document.getElementById('historySearch')?.value || '').toLowerCase();
+  const filtered = reportsDB.filter(r =>
+    !q ||
+    (r.nick     || '').toLowerCase().includes(q) ||
+    (r.staticId || '').toLowerCase().includes(q)
+  );
   const tbody = document.getElementById('historyBody');
   const empty = document.getElementById('historyEmpty');
   if (!filtered.length) {
@@ -738,192 +723,181 @@ function renderHistory() {
   }
   empty.style.display = 'none';
   tbody.innerHTML = filtered.map(r => {
-    const date = formatDateSafe(r.date);
+    const dt     = fmtKyiv(r.date);
+    const canDel = currentUser?.isAdmin;
     return `<tr>
-      <td style="white-space:nowrap;color:var(--txt2);">${date}</td>
-      <td><strong style="color:var(--txt);">${escapeHtml(r.nick)}</strong></td>
-      <td style="color:var(--txt2);">${escapeHtml(r.staticId)}</td>
-      <td style="color:var(--c);font-weight:600;">${r.total.toLocaleString()} мт.</td>
+      <td style="white-space:nowrap;color:var(--txt2);">${dt}</td>
+      <td><strong style="color:var(--txt);">${esc(r.nick)}</strong></td>
+      <td style="color:var(--txt2);">${esc(r.staticId)}</td>
+      <td style="color:var(--c);font-weight:600;">${(r.total||0).toLocaleString('uk-UA')} мт.</td>
       <td style="white-space:nowrap;">
-        <button class="icon-btn" onclick="viewReport('${r.id}')" title="Переглянути">👁️</button>
-        ${currentUser?.isAdmin ? `<button class="icon-btn" onclick="openDeleteModal('${r.id}')" title="Видалити">🗑️</button>` : ''}
+        <button class="icon-btn" onclick="viewReport('${esc(r.id)}')" title="Переглянути">👁️</button>
+        ${canDel ? `<button class="icon-btn" onclick="openDeleteModal('${esc(r.id)}')" title="Видалити">🗑️</button>` : ''}
       </td>
     </tr>`;
   }).join('');
 }
 
 function viewReport(id) {
-  const report = reportsDB.find(r => r.id === id);
-  if (!report) return;
-  document.getElementById('viewNick').textContent = report.nick;
-  document.getElementById('viewStatic').textContent = report.staticId;
-  document.getElementById('viewDate').textContent = formatDateSafe(report.date);
-  document.getElementById('viewItems').innerHTML = (report.items || []).map(i => `
-    <div class="modal-item"><span>${escapeHtml(i.name)} ×${i.qty}</span><span style="color:var(--c);">${(i.qty * i.price).toLocaleString()} мт.</span></div>
-  `).join('');
-  document.getElementById('viewTotal').textContent = report.total.toLocaleString() + ' мт.';
+  const r = reportsDB.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('viewNick').textContent   = r.nick     || '—';
+  document.getElementById('viewStatic').textContent = r.staticId || '—';
+  document.getElementById('viewDate').textContent   = fmtKyiv(r.date);
+  const items = r.items || [];
+  document.getElementById('viewItems').innerHTML = items.map(i =>
+    `<div class="modal-item">
+      <span>${esc(i.name || i.id)} ×${i.qty}</span>
+      <span style="color:var(--c);">${((i.price||0)*(i.qty||0)).toLocaleString('uk-UA')} мт.</span>
+    </div>`
+  ).join('');
+  document.getElementById('viewTotal').textContent = (r.total||0).toLocaleString('uk-UA') + ' мт.';
   openModal('viewModal');
 }
 
+// ── DELETE ────────────────────────────────────────────────
 function openDeleteModal(id) {
-  pendingDeleteId = id;
+  pendingDelId = id;
   document.getElementById('delLogin').value = '';
-  document.getElementById('delPass').value = '';
+  document.getElementById('delPass').value  = '';
   document.getElementById('delError').style.display = 'none';
   openModal('deleteModal');
 }
-
 async function confirmDelete() {
   const login = document.getElementById('delLogin').value.trim();
-  const password = document.getElementById('delPass').value;
-  if (!login || !password) { showDelError('Введіть логін та пароль'); return; }
-
+  const pass  = document.getElementById('delPass').value;
+  if (!login || !pass) { showDelErr('Введіть логін та пароль'); return; }
   const btn = document.getElementById('delConfirmBtn');
   btn.disabled = true;
   btn.innerHTML = '⏳ Перевірка...';
-
   try {
-    const auth = await apiCall({ action: 'checkAuth', login, password });
+    const auth = await apiCall({ action:'checkAuth', login, password:pass });
     if (!auth.success) {
-      showDelError(auth.error || 'Невірний логін або пароль');
-      btn.disabled = false;
-      btn.innerHTML = '🗑️ Видалити';
-      return;
+      showDelErr(auth.error || 'Невірний логін або пароль');
+      btn.disabled = false; btn.innerHTML = '🗑️ Видалити'; return;
     }
-
-    const del = await apiCall({ action: 'deleteReport', id: pendingDeleteId, login, password });
+    const del = await apiCall({ action:'deleteReport', id:pendingDelId, login, password:pass });
     if (del.success) {
-      reportsDB = reportsDB.filter(r => r.id !== pendingDeleteId);
+      reportsDB = reportsDB.filter(r => r.id !== pendingDelId);
       renderHistory();
       renderStats();
-      closeModal(null, 'deleteModal');
-      toast('Запис видалено', 'success');
+      closeModal('deleteModal');
+      toast('Запис видалено','success');
     } else {
-      showDelError(del.error || 'Помилка видалення');
+      showDelErr(del.error || 'Помилка видалення');
     }
   } catch(e) {
-    showDelError('Помилка з\'єднання');
+    showDelErr('Помилка з\'єднання');
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '🗑️ Видалити';
+  btn.disabled = false; btn.innerHTML = '🗑️ Видалити';
+}
+function showDelErr(msg) {
+  const e = document.getElementById('delError');
+  e.textContent = msg;
+  e.style.display = 'block';
 }
 
-function showDelError(msg) {
-  const err = document.getElementById('delError');
-  err.textContent = msg;
-  err.style.display = 'block';
-}
-
-function setFilter(filter) {
-  currentFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  const map = { today: 0, '7d': 1, '30d': 2, month: 3 };
-  document.querySelectorAll('.filter-btn')[map[filter]]?.classList.add('active');
+// ── STATS ─────────────────────────────────────────────────
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
   renderStats();
 }
-
-function getFilteredReports() {
+function getFiltered() {
   const now = new Date();
-  let from = new Date(0);
-  if (currentFilter === 'today') { from = new Date(now); from.setHours(0,0,0,0); }
-  else if (currentFilter === '7d') { from = new Date(now); from.setDate(from.getDate() - 7); }
-  else if (currentFilter === '30d') { from = new Date(now); from.setDate(from.getDate() - 30); }
-  else if (currentFilter === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1); }
+  let from  = new Date(0);
+  if (curFilter === 'today') { from = new Date(now); from.setHours(0,0,0,0); }
+  else if (curFilter === '7d')  { from = new Date(now.getTime() - 7*86400000); }
+  else if (curFilter === '30d') { from = new Date(now.getTime() - 30*86400000); }
+  else if (curFilter === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1); }
   return reportsDB.filter(r => new Date(r.date) >= from);
 }
-
 function renderStats() {
-  const filtered = getFilteredReports();
-  const total = filtered.length;
-  const mats = filtered.reduce((s, r) => s + r.total, 0);
-  const avg = total ? Math.round(mats / total) : 0;
+  const filtered = getFiltered();
+  const total    = filtered.length;
+  const mats     = filtered.reduce((s,r) => s + r.total, 0);
+  const avg      = total ? Math.round(mats/total) : 0;
   document.getElementById('statTotal').textContent = total;
-  document.getElementById('statMats').textContent = mats.toLocaleString();
-  document.getElementById('statAvg').textContent = avg.toLocaleString();
-
+  document.getElementById('statMats').textContent  = mats.toLocaleString('uk-UA');
+  document.getElementById('statAvg').textContent   = avg.toLocaleString('uk-UA');
   const counts = {};
-  filtered.forEach(r => { counts[r.nick] = (counts[r.nick] || 0) + 1; });
-  const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0,10);
-  const container = document.getElementById('topPlayers');
-  if (!sorted.length) {
-    container.innerHTML = '<div class="empty-state">Немає даних за обраний період</div>';
-    return;
-  }
-  container.innerHTML = sorted.map(([name, cnt], i) => {
-    const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn';
-    return `<div class="top-row"><div class="top-rank ${rankClass}">${i+1}</div><div class="top-name">${escapeHtml(name)}</div><div class="top-count">${cnt} звіт${cnt === 1 ? '' : cnt < 5 ? 'и' : 'ів'}</div></div>`;
+  filtered.forEach(r => { counts[r.nick] = (counts[r.nick]||0) + 1; });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const el = document.getElementById('topPlayers');
+  if (!sorted.length) { el.innerHTML = '<div class="empty-state">Немає даних за обраний період</div>'; return; }
+  el.innerHTML = sorted.map(([name,cnt],i) => {
+    const rc = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const s  = cnt===1?'':cnt<5?'и':'ів';
+    return `<div class="top-row"><div class="top-rank ${rc}">${i+1}</div><div class="top-name">${esc(name)}</div><div class="top-count">${cnt} звіт${s}</div></div>`;
   }).join('');
 }
 
+// ── TAB SWITCH ────────────────────────────────────────────
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
-  document.getElementById('tab-report').style.display = tab === 'report' ? 'block' : 'none';
-  document.getElementById('tab-history').style.display = tab === 'history' ? 'block' : 'none';
-  document.getElementById('tab-stats').style.display = tab === 'stats' ? 'block' : 'none';
-  if (tab === 'history') renderHistory();
-  if (tab === 'stats') renderStats();
-}
-
-function showCategory(cat) {
-  document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelector(`.cat-btn[data-cat="${cat}"]`).classList.add('active');
-  document.querySelectorAll('.cat-panel').forEach(panel => panel.classList.remove('active'));
-  document.getElementById(`cat-${cat}`).classList.add('active');
-}
-
-function exportCSV() {
-  if (!reportsDB.length) { toast('Немає даних для експорту', 'error'); return; }
-  const rows = [['Дата', 'Гравець', 'Static ID', 'Предмети', 'Всього мт.']];
-  reportsDB.forEach(r => {
-    const items = (r.items || []).map(i => `${i.name} x${i.qty}`).join('; ');
-    rows.push([formatDateSafe(r.date), r.nick, r.staticId, items, r.total]);
+  ['report','history','stats'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
   });
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  if (tab === 'history') renderHistory();
+  if (tab === 'stats')   renderStats();
+}
+
+// ── CSV ───────────────────────────────────────────────────
+function exportCSV() {
+  if (!reportsDB.length) { toast('Немає даних','error'); return; }
+  const rows = [['Дата (Київ)','Гравець','Static ID','Предмети','Всього мт.']];
+  reportsDB.forEach(r => {
+    const items = (r.items||[]).map(i => `${i.name} x${i.qty}`).join('; ');
+    rows.push([fmtKyiv(r.date), r.nick, r.staticId, items, r.total]);
+  });
+  const csv  = rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `ems_reports_${new Date().toISOString().slice(0,10)}.csv`;
+  link.href     = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  link.download = 'ems_reports_' + new Date().toISOString().slice(0,10) + '.csv';
   link.click();
   URL.revokeObjectURL(link.href);
 }
 
-function formatDateSafe(dateStr) {
+// ── UTILS ─────────────────────────────────────────────────
+// Єдина функція форматування дати — завжди Europe/Kyiv
+function fmtKyiv(dateStr) {
+  if (!dateStr) return '—';
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr || '—';
-  return d.toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+  if (isNaN(d.getTime())) return String(dateStr);
+  return d.toLocaleString('uk-UA', {
+    timeZone: 'Europe/Kyiv',
+    day:      '2-digit',
+    month:    '2-digit',
+    year:     'numeric',
+    hour:     '2-digit',
+    minute:   '2-digit'
+  });
 }
-
-function showLoading(show, text = 'Завантаження...') {
-  const overlay = document.getElementById('loadingOverlay');
-  document.getElementById('loadingText').textContent = text;
-  overlay.classList.toggle('open', show);
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
-
-function toast(msg, type = 'info') {
-  const container = document.getElementById('toastContainer');
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+function showLoading(show, text) {
+  document.getElementById('loadingText').textContent = text || 'Завантаження...';
+  document.getElementById('loadingOverlay').classList.toggle('open', show);
+}
+function toast(msg, type='info') {
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span> ${msg}`;
-  container.appendChild(el);
+  el.className = 'toast ' + (type==='success'?'success':type==='error'?'error':'info');
+  el.innerHTML = (type==='success'?'✓':type==='error'?'✕':'ℹ') + ' ' + msg;
+  document.getElementById('toastContainer').appendChild(el);
   setTimeout(() => el.remove(), 3500);
 }
-
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, m =>
-    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'": '&#39;' }[m])
-  );
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(event, id) {
-  if (!event || event.target === document.getElementById(id)) {
-    document.getElementById(id).classList.remove('open');
-  }
-}
-
-init();
 </script>
 </body>
 </html>
