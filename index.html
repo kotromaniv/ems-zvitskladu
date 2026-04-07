@@ -1051,13 +1051,13 @@ function showLoginError(msg) {
 //  API CALLS
 // ============================================================
 async function apiCall(params) {
-  const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
+  const url = https://script.google.com/macros/s/AKfycby9amAWdvNPHmKMDycQi79Prqc8N5qcdpMm-JBu5zPns9u-oh4uBKIPH0ABtPh8CA17Ow/exec + '?' + new URLSearchParams(params).toString();
   const res = await fetch(url);
   return res.json();
 }
 
 async function apiWrite(params) {
-  const url = CONFIG.scriptUrl + '?' + new URLSearchParams(params).toString();
+  const url = https://script.google.com/macros/s/AKfycby9amAWdvNPHmKMDycQi79Prqc8N5qcdpMm-JBu5zPns9u-oh4uBKIPH0ABtPh8CA17Ow/exec + '?' + new URLSearchParams(params).toString();
   await fetch(url, { mode: 'no-cors' });
 }
 
