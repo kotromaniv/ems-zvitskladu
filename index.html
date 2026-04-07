@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>EMS · Звіт складу</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#E6E6FA;
+  --bg2:#F0F0FF;
+  --bg3:#DCDCF5;
+  --bg4:#F8F8FF;
+  --sidebar:#1a0a12;
+  --c:#DC143C;
+  --cdim:rgba(220,20,60,.10);
+  --c2:#b01030;
+  --g:#006400;
+  --gdim:rgba(0,100,0,.09);
+  --g2:#00C853;
+  --border:rgba(220,20,60,.16);
+  --border2:rgba(220,20,60,.34);
+  --border3:rgba(220,20,60,.07);
+  --txt:#1a0a12;
+  --txt2:#6b304a;
+  --txt3:#b07090;
+  --txts:#F0E6FA;
+  --txts2:#c8a0bc;
+  --rad:12px;
+  --rad2:8px;
+  --sh:0 2px 14px rgba(220,20,60,.10);
+  --sh2:0 6px 28px rgba(220,20,60,.16);
+  --mob:58px;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;-webkit-tap-highlight-color:transparent;}
+
+/* ─── LOGIN ─── */
+#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--bg2);border:1.5px solid var(--border2);border-radius:20px;padding:38px;width:90%;max-width:380px;box-shadow:var(--sh2);}
+.login-logo{display:flex;align-items:center;gap:13px;margin-bottom:26px;}
+.logo-sq{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--c),#ff4d6d);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(220,20,60,.45);}
+.login-box h2{font-size:20px;font-weight:800;margin-bottom:6px;color:var(--txt);}
+.login-box p{font-size:13px;color:var(--txt2);margin-bottom:22px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:700;color:var(--txt2);letter-spacing:.8px;text-transform:uppercase;}
+.inp{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rad2);color:var(--txt);font:500 14px/1.2 'Inter',sans-serif;padding:11px 13px;outline:none;width:100%;transition:.15s;}
+.inp::placeholder{color:var(--txt3);}
+.inp:focus{border-color:var(--c);background:var(--bg4);box-shadow:0 0 0 3px rgba(220,20,60,.08);}
+.inp[readonly]{color:var(--txt2);cursor:default;background:var(--bg3);}
+#loginErr{color:var(--c);font-size:12px;display:none;margin-top:6px;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:var(--rad2);font:700 13px/1 'Inter',sans-serif;border:none;cursor:pointer;transition:.15s;outline:none;white-space:nowrap;}
+.btn svg{width:14px;height:14px;flex-shrink:0;}
+.btn-p{background:var(--c);color:#fff;}
+.btn-p:hover{background:var(--c2);box-shadow:0 4px 16px rgba(220,20,60,.3);transform:translateY(-1px);}
+.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-g{background:var(--bg3);border:1.5px solid var(--border);color:var(--txt2);}
+.btn-g:hover{border-color:var(--border2);color:var(--txt);}
+.btn-d{background:transparent;border:1.5px solid var(--c);color:var(--c);}
+.btn-d:hover{background:var(--cdim);}
+.btn-sm{padding:7px 13px;font-size:11px;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(220,20,60,.2);border-top-color:var(--c);border-radius:50%;animation:rot .6s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ─── TOPBAR ─── */
+.topbar{background:var(--sidebar);display:flex;align-items:center;gap:0;height:56px;padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.top-logo{display:flex;align-items:center;gap:11px;margin-right:24px;text-decoration:none;}
+.top-logo .logo-sq{width:34px;height:34px;border-radius:9px;font-size:12px;}
+.top-brand h1{font-size:14px;font-weight:700;color:var(--txts);}
+.top-brand p{font-size:9px;color:var(--txts2);letter-spacing:1px;text-transform:uppercase;}
+.top-sep{width:1px;height:28px;background:rgba(255,255,255,.1);margin-right:20px;}
+.top-nav{display:flex;gap:4px;}
+.tnav{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--rad2);background:transparent;border:none;color:var(--txts2);font:600 13px/1 'Inter',sans-serif;cursor:pointer;transition:.15s;}
+.tnav svg{width:15px;height:15px;flex-shrink:0;opacity:.65;}
+.tnav:hover{background:rgba(255,255,255,.06);color:var(--txts);}
+.tnav.on{background:rgba(220,20,60,.2);color:#ff8fa3;border:1px solid rgba(220,20,60,.28);}
+.tnav.on svg{opacity:1;color:#ff8fa3;}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.top-user{display:flex;align-items:center;gap:8px;}
+.top-av{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--c),#ff4d6d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.top-nick{font-size:12px;font-weight:600;color:var(--txts);}
+
+/* ─── PAGES ─── */
+.page{display:none;padding:32px 28px 80px;max-width:1100px;margin:0 auto;width:100%;}
+.page.on{display:block;}
+.ptitle{margin-bottom:24px;}
+.ptitle h2{font-size:24px;font-weight:800;color:var(--c);letter-spacing:-.5px;}
+.ptitle p{font-size:13px;color:var(--txt2);margin-top:4px;}
+
+/* ─── CARD ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rad);padding:20px;margin-bottom:16px;box-shadow:var(--sh);}
+.clbl{font-size:10px;font-weight:700;color:var(--txt3);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.clbl::before{content:'';width:3px;height:11px;background:var(--c);border-radius:2px;display:block;}
+
+/* ─── IDENTITY ─── */
+.id-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ─── CATEGORY TABS ─── */
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.ctab{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:22px;border:1.5px solid var(--border);background:var(--bg3);color:var(--txt2);font:600 12px/1 'Inter',sans-serif;cursor:pointer;transition:.15s;}
+.ctab .cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:.15s;}
+.ctab:hover{border-color:var(--border2);color:var(--txt);}
+.ctab.on[data-cat=med]{border-color:#dc143c;color:#dc143c;background:var(--cdim);}
+.ctab.on[data-cat=med] .cdot{background:#dc143c;box-shadow:0 0 8px #dc143c;}
+.ctab.on[data-cat=uniform]{border-color:#00aaff;color:#00aaff;background:rgba(0,170,255,.08);}
+.ctab.on[data-cat=uniform] .cdot{background:#00aaff;box-shadow:0 0 8px #00aaff;}
+.ctab.on[data-cat=armor]{border-color:#00c853;color:#00c853;background:rgba(0,200,83,.08);}
+.ctab.on[data-cat=armor] .cdot{background:#00c853;box-shadow:0 0 8px #00c853;}
+
+/* ─── ITEMS GRID ─── */
+.items-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.item-card{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rad2);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:.15s;}
+.item-card:hover{border-color:var(--border2);}
+.item-card.active{border-color:var(--c);background:var(--cdim);}
+.item-info{flex:1;min-width:0;}
+.item-name{font-size:13px;font-weight:700;color:var(--txt);}
+.item-price{font-size:11px;color:var(--txt2);margin-top:2px;}
+.item-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.qty-btn{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--border);background:var(--bg4);color:var(--txt);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
+.qty-btn:hover{border-color:var(--c);color:var(--c);}
+.qty-val{font:700 14px/1 'Inter',sans-serif;min-width:28px;text-align:center;color:var(--txt);}
+
+/* ─── SUMMARY BAR ─── */
+.sum-bar{background:linear-gradient(135deg,#1e0c16,#2a1020);border:1px solid rgba(220,20,60,.28);border-radius:var(--rad);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh2);flex-wrap:wrap;gap:12px;}
+.sum-info .sl{font-size:11px;color:var(--txts2);}
+.sum-info .sv{font-size:18px;font-weight:800;color:#ff9ab5;margin-top:2px;}
+.sum-info .sc{font-size:12px;color:var(--txts2);margin-top:2px;}
+.sum-btns{display:flex;gap:8px;}
+
+/* ─── CD NOTICE ─── */
+.cd-notice{background:rgba(220,20,60,.08);border:1.5px solid rgba(220,20,60,.25);border-radius:var(--rad2);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.cd-icon{font-size:20px;flex-shrink:0;}
+.cd-text .ct{font-size:13px;font-weight:700;color:var(--c);}
+.cd-text .cs{font-size:12px;color:var(--txt2);margin-top:3px;}
+#cdTimer{font-weight:800;color:var(--c);}
+
+/* ─── HISTORY TABLE ─── */
+.top-search-row{display:flex;gap:8px;margin-bottom:14px;}
+.sw{flex:1;position:relative;}
+.sw svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--txt3);width:14px;height:14px;}
+.sinp{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rad2);color:var(--txt);font:500 13px/1 'Inter',sans-serif;padding:10px 13px 10px 34px;outline:none;transition:.15s;}
+.sinp:focus{border-color:var(--border2);}
+.sinp::placeholder{color:var(--txt3);}
+.ibtn{width:42px;height:42px;border-radius:var(--rad2);background:var(--bg2);border:1.5px solid var(--border);color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
+.ibtn:hover{border-color:var(--border2);color:var(--c);}
+.ibtn svg{width:14px;height:14px;}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--txt3);letter-spacing:1.2px;text-transform:uppercase;border-bottom:2px solid var(--border);background:var(--bg3);}
+tbody tr{border-bottom:1px solid var(--border3);transition:background .1s;}
+tbody tr:hover{background:rgba(220,20,60,.03);}
+tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
+.tmono{font-family:monospace;font-size:11px;color:var(--txt2);}
+.tbold{font-weight:600;}
+.total-badge{font-weight:800;color:var(--c);font-size:13px;}
+.racts{display:flex;gap:5px;}
+.rbtn{width:30px;height:30px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;}
+.rbtn svg{width:13px;height:13px;}
+.rbtn:hover{border-color:var(--border2);color:var(--c);}
+.rbtn.del:hover{border-color:#8b0000;color:#8b0000;background:rgba(139,0,0,.07);}
+.empty{text-align:center;padding:50px 20px;color:var(--txt3);font-size:12px;}
+.pager{display:flex;gap:5px;justify-content:center;padding:14px;flex-wrap:wrap;}
+.pgb{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1.5px solid var(--border);color:var(--txt2);font:600 11px/1 'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;}
+.pgb:hover,.pgb.on{border-color:var(--c);color:var(--c);background:var(--cdim);}
+
+/* ─── STATS ─── */
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.sbox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rad);padding:22px;box-shadow:var(--sh);}
+.si{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.si svg{width:19px;height:19px;}
+.si-c{background:var(--cdim);color:var(--c);}
+.si-g{background:var(--gdim);color:var(--g);}
+.si-b{background:rgba(0,170,255,.1);color:#0099ee;}
+.slbl{font-size:11px;color:var(--txt2);margin-bottom:5px;}
+.snum{font-size:26px;font-weight:800;letter-spacing:-1px;color:var(--txt);}
+.date-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.dfp{padding:6px 14px;border-radius:20px;background:var(--bg2);border:1.5px solid var(--border);color:var(--txt2);font:600 11px/1 'Inter',sans-serif;cursor:pointer;transition:.15s;}
+.dfp:hover{border-color:var(--border2);color:var(--txt);}
+.dfp.on{background:var(--cdim);border-color:var(--c);color:var(--c);}
+/* Leaderboard */
+.lb-list{display:flex;flex-direction:column;gap:0;}
+.lb-row{display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid var(--border3);}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:rgba(220,20,60,.03);}
+.lb-pos{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font:800 14px/1 'Inter',sans-serif;flex-shrink:0;}
+.lp1{background:linear-gradient(135deg,#ffd700,#ffb300);color:#5a3a00;box-shadow:0 3px 10px rgba(255,180,0,.3);}
+.lp2{background:linear-gradient(135deg,#c0c0c0,#9e9e9e);color:#fff;}
+.lp3{background:linear-gradient(135deg,#cd7f32,#a0522d);color:#fff;}
+.lpx{background:var(--bg3);color:var(--txt2);font-size:12px;}
+.lb-name{flex:1;font-weight:600;font-size:14px;}
+.lb-bar-wrap{width:90px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.lb-bar{height:100%;background:linear-gradient(90deg,var(--c),#ff6b8a);border-radius:3px;transition:.5s;}
+.lb-cnt{font-size:13px;font-weight:700;color:var(--c);min-width:50px;text-align:right;}
+
+/* ─── MODAL ─── */
+.overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(20,5,14,.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:12px;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-width:460px;box-shadow:var(--sh2);animation:mIn .18s ease;max-height:92vh;overflow-y:auto;}
+.modal.lg{max-width:520px;}
+@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:8px;}
+.mh h3{font-size:16px;font-weight:700;color:var(--txt);}
+.mx{background:transparent;border:none;color:var(--txt2);cursor:pointer;padding:4px;border-radius:6px;transition:.12s;flex-shrink:0;}
+.mx:hover{color:var(--c);background:var(--cdim);}
+.mx svg{width:16px;height:16px;display:block;}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;margin-bottom:14px;}
+.info-box.warn{border-color:rgba(220,20,60,.28);background:rgba(220,20,60,.04);}
+.info-title{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px;}
+.info-title.red{color:var(--c);}
+.info-desc{font-size:12px;color:var(--txt2);line-height:1.65;}
+
+/* Detail rows */
+.drow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border3);font-size:12px;gap:12px;}
+.drow:last-child{border-bottom:none;}
+.dlbl{color:var(--txt2);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;flex-shrink:0;padding-top:2px;}
+.dval{font-weight:600;color:var(--txt);text-align:right;word-break:break-word;}
+.detail-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border3);font-size:13px;gap:8px;}
+.detail-item:last-child{border-bottom:none;}
+.di-name{flex:1;color:var(--txt);}
+.di-qty{color:var(--txt2);font-size:12px;}
+.di-price{font-weight:700;color:var(--c);}
+.detail-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:15px;font-weight:800;color:var(--txt);border-top:2px solid var(--border);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.sel{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rad2);color:var(--txt);font:500 14px/1.2 'Inter',sans-serif;padding:11px 13px;outline:none;width:100%;transition:.15s;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%237a3050' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
+.sel option{background:var(--bg2);}
+.sel:focus{border-color:var(--c);}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;bottom:22px;right:22px;z-index:300;background:var(--sidebar);border:1px solid rgba(220,20,60,.3);border-radius:12px;padding:13px 17px;display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;max-width:300px;color:var(--txts);transform:translateY(70px);opacity:0;transition:.25s ease;pointer-events:none;box-shadow:var(--sh2);}
+#toast.show{transform:none;opacity:1;}
+#toast.ok{border-color:rgba(0,100,0,.5);}
+#toast.err{border-color:rgba(220,20,60,.6);}
+
+/* ─── MOBILE ─── */
+@media(max-width:768px){
+  .page{padding:16px 14px calc(var(--mob) + 20px);}
+  .id-grid,.g2,.stat3{grid-template-columns:1fr;}
+  .items-grid{grid-template-columns:1fr;}
+  .top-brand p{display:none;}
+  .tnav span{display:none;}
+  #toast{bottom:calc(var(--mob) + 10px);right:12px;left:12px;max-width:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-sq">EMS</div>
+      <div><div style="font-size:16px;font-weight:800;color:var(--txt);">EMS Фракція</div><div style="font-size:11px;color:var(--txt2);">Звіт складу</div></div>
+    </div>
+    <h2>Вхід у систему</h2>
+    <p>Введіть ваш особистий логін виданий адміністратором</p>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Логін</label>
+      <input class="inp" id="loginInp" placeholder="Введіть логін..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <p id="loginErr"></p>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:13px;margin-top:4px;" onclick="doLogin()" id="loginBtn">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Увійти
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none;">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="top-logo">
+      <div class="logo-sq" style="width:34px;height:34px;border-radius:9px;font-size:12px;">EMS</div>
+      <div class="top-brand"><h1>EMS Фракція</h1><p>Звіт складу</p></div>
+    </div>
+    <div class="top-sep"></div>
+    <div class="top-nav">
+      <button class="tnav on" data-p="report">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Звіт</span>
+      </button>
+      <button class="tnav" data-p="history">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Історія</span>
+      </button>
+      <button class="tnav" data-p="stats">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Статистика</span>
+      </button>
+    </div>
+    <div class="top-right">
+      <div class="top-user">
+        <div class="top-av" id="topAv">?</div>
+        <div class="top-nick" id="topNick">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: REPORT -->
+  <div class="page on" id="page-report">
+    <div class="ptitle"><h2>Звіт складу</h2><p>Заповніть форму після отримання предметів зі складу</p></div>
+
+    <!-- CD notice -->
+    <div class="cd-notice" id="cdNotice" style="display:none;">
+      <div class="cd-icon">⏳</div>
+      <div class="cd-text">
+        <div class="ct">Повторна відправка заблокована</div>
+        <div class="cs">Наступний звіт можна буде надіслати через: <span id="cdTimer">—</span></div>
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="card">
+      <div class="clbl">Інформація про гравця</div>
+      <div class="id-grid">
+        <div class="field"><label>Нік у грі</label><input class="inp" id="fNick" readonly placeholder="Завантаження..."></div>
+        <div class="field"><label>Static ID</label><input class="inp" id="fSid" readonly placeholder="Завантаження..."></div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="card">
+      <div class="cat-tabs">
+        <button class="ctab on" data-cat="med" onclick="setCat('med',this)"><span class="cdot" style="background:#dc143c;box-shadow:0 0 8px #dc143c;"></span>Медикаменти</button>
+        <button class="ctab" data-cat="uniform" onclick="setCat('uniform',this)"><span class="cdot" style="background:#00aaff;box-shadow:0 0 8px #00aaff;"></span>Форма</button>
+        <button class="ctab" data-cat="armor" onclick="setCat('armor',this)"><span class="cdot" style="background:#00c853;box-shadow:0 0 8px #00c853;"></span>Бронежилети</button>
+      </div>
+      <div class="items-grid" id="itemsGrid"></div>
+    </div>
+
+    <!-- Summary bar -->
+    <div class="sum-bar">
+      <div class="sum-info">
+        <div class="sl">Обрано предметів: <span id="sumCount">0</span></div>
+        <div class="sv" id="sumTotal">0 мт.</div>
+        <div class="sc" id="sumItems"></div>
+      </div>
+      <div class="sum-btns">
+        <button class="btn" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--txts2);" onclick="resetForm()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Скинути
+        </button>
+        <button class="btn btn-p" id="submitBtn" onclick="openConfirm()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Відправити
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: HISTORY -->
+  <div class="page" id="page-history">
+    <div class="ptitle"><h2>Історія звітів</h2><p id="hCnt">Завантаження...</p></div>
+    <div class="top-search-row">
+      <div class="sw"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="sinp" id="hSearch" placeholder="Пошук за ніком або Static ID..." oninput="filterH()"></div>
+      <button class="ibtn" onclick="loadHistory(true)" title="Оновити"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></button>
+      <button class="ibtn" onclick="exportCSV()" title="CSV"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="hLoad" class="empty"><div class="spin" style="display:block;margin:0 auto 8px;width:22px;height:22px;"></div>Завантаження...</div>
+      <div id="hWrap" style="display:none;">
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Дата</th><th>Гравець</th><th>Static</th><th>Матеріали</th><th>Дії</th></tr></thead>
+          <tbody id="hBody"></tbody>
+        </table></div>
+        <div id="hEmpty" class="empty" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="width:32px;height:32px;margin:0 auto 10px;display:block;opacity:.3;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Записів не знайдено</div>
+        <div id="hPager" class="pager"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: STATS -->
+  <div class="page" id="page-stats">
+    <div class="ptitle"><h2>Статистика</h2><p>Аналітика звітів та активності гравців</p></div>
+    <div class="date-filters">
+      <button class="dfp" onclick="setDateFilter('today',this)">Сьогодні</button>
+      <button class="dfp" onclick="setDateFilter('7d',this)">7 днів</button>
+      <button class="dfp on" onclick="setDateFilter('30d',this)">30 днів</button>
+      <button class="dfp" onclick="setDateFilter('month',this)">Цей місяць</button>
+    </div>
+    <div class="stat3">
+      <div class="sbox"><div class="si si-c"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="slbl">Всього звітів</div><div class="snum" id="stTotal">—</div></div>
+      <div class="sbox"><div class="si si-b"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="slbl">Матеріали видано</div><div class="snum" id="stMat">—</div></div>
+      <div class="sbox"><div class="si si-g"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="slbl">Середня видача</div><div class="snum" id="stAvg">—</div></div>
+    </div>
+    <div class="clbl" style="margin-bottom:12px;">Топ-10 активних гравців</div>
+    <div class="card" style="padding:0;overflow:hidden;"><div id="lb"><div class="empty"><div class="spin" style="display:block;margin:0 auto 8px;width:22px;height:22px;"></div>Завантаження...</div></div></div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Підтвердження відправки -->
+<div class="overlay" id="confirmOv">
+  <div class="modal">
+    <div class="mh"><h3>Підтвердження звіту</h3><button class="mx" onclick="closeM('confirmOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="info-box">
+      <div class="info-title" style="color:#5566cc;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Перевірте дані перед відправкою</div>
+      <div class="info-desc">Після підтвердження звіт буде зафіксовано. Протягом <strong>10 хвилин</strong> повторна відправка буде заблокована.</div>
+    </div>
+    <div id="confirmList"></div>
+    <div class="btns" style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-g" style="flex:1" onclick="closeM('confirmOv')">Скасувати</button>
+      <button class="btn btn-p" style="flex:1" id="confirmSendBtn" onclick="submitReport()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Підтвердити
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Деталі звіту -->
+<div class="overlay" id="detOv">
+  <div class="modal lg">
+    <div class="mh"><h3>Деталі звіту</h3><button class="mx" onclick="closeM('detOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div id="detBody"></div>
+  </div>
+</div>
+
+<!-- Видалення запису -->
+<div class="overlay" id="delOv">
+  <div class="modal">
+    <div class="mh"><h3>Підтвердження видалення</h3><button class="mx" onclick="closeM('delOv')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="info-box warn" style="margin-bottom:16px;">
+      <div class="info-title red">⚠️ Дія незворотня</div>
+      <div class="info-desc">Для підтвердження видалення введіть ваш логін та пароль адміністратора.</div>
+    </div>
+    <div class="g2" style="margin-bottom:12px;">
+      <div class="field"><label>Логін</label><input class="inp" id="dLogin" placeholder="Логін..."></div>
+      <div class="field"><label>Пароль</label><input class="inp" type="password" id="dPass" placeholder="••••••••"></div>
+    </div>
+    <p id="dErr" style="color:var(--c);font-size:11px;display:none;margin-bottom:10px;"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-g" style="flex:1" onclick="closeM('delOv')">Скасувати</button>
+      <button class="btn btn-d" style="flex:1" onclick="confirmDel()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Видалити</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="tIco"></span><span id="tMsg"></span></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/ВСТАВТЕ_ВАШ_DEPLOYMENT_URL/exec';
+const CD_MS = 10 * 60 * 1000; // 10 хвилин КД
+
+// ══════════════════════════════════════════
+// ITEMS DATABASE
+// ══════════════════════════════════════════
+const ITEMS = {
+  med: [
+    { id:'medkit',     name:'Велика аптечка', price:75,  unit:'мт' },
+    { id:'adrenaline', name:'Адреналін',       price:50,  unit:'мт' },
+  ],
+  uniform: [
+    { id:'form1', name:'Форма №1', price:300, unit:'мт' },
+    { id:'form2', name:'Форма №2', price:300, unit:'мт' },
+    { id:'form3', name:'Форма №3', price:300, unit:'мт' },
+    { id:'form4', name:'Форма №4', price:300, unit:'мт' },
+    { id:'form5', name:'Форма №5', price:300, unit:'мт' },
+  ],
+  armor: [
+    { id:'armor_medic',     name:'Medic',     price:100, unit:'мт' },
+    { id:'armor_ambulance', name:'Ambulance', price:100, unit:'мт' },
+    { id:'armor_head',      name:'Head',      price:100, unit:'мт' },
+    { id:'armor_paramedic', name:'Paramedic', price:100, unit:'мт' },
+    { id:'armor_staff',     name:'Staff',     price:100, unit:'мт' },
+  ],
+};
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let me = null; // { login, nick, staticId, isAdmin }
+let qty = {}; // { itemId: count }
+let curCat = 'med';
+let allH = [], filtH = [], curHPg = 1;
+const PER = 15;
+let delId = null;
+let dateFilter = '30d';
+let cdTimer = null;
+const CACHE_TTL = 30000;
+const cache = { history: { at:0, data:null } };
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+async function doLogin() {
+  const login = document.getElementById('loginInp').value.trim();
+  if (!login) return showLoginErr('Введіть логін');
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Перевірка...';
+  try {
+    const r = await call('loginUser', { login });
+    if (r.ok) {
+      enterSession(r.user);
+    } else {
+      showLoginErr(r.error || 'Невірний логін. Зверніться до адміністратора.');
+    }
+  } catch(e) {
+    showLoginErr(humanizeErr(e));
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Увійти';
+}
+function showLoginErr(m) {
+  const e = document.getElementById('loginErr');
+  e.textContent = m;
+  e.style.display = 'block';
+}
+function enterSession(user) {
+  me = user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('fNick').value = me.nick || '';
+  document.getElementById('fSid').value = me.staticId || '';
+  document.getElementById('topAv').textContent = (me.nick || me.login)[0].toUpperCase();
+  document.getElementById('topNick').textContent = me.nick || me.login;
+  checkCD();
+  renderItems();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+document.querySelectorAll('.tnav').forEach(b => b.addEventListener('click', () => goPage(b.dataset.p)));
+function goPage(page) {
+  document.querySelectorAll('.tnav').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll(`.tnav[data-p="${page}"]`).forEach(x => x.classList.add('on'));
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('on');
+  if (page === 'history') loadHistory();
+  if (page === 'stats')   loadStats();
+}
+
+// ══════════════════════════════════════════
+// CD (cooldown) — зберігається в localStorage
+// ══════════════════════════════════════════
+function getCDKey() { return 'wh_cd_' + (me ? me.login : ''); }
+function setCDNow() { localStorage.setItem(getCDKey(), String(Date.now())); }
+function getCDRemaining() {
+  const key = getCDKey();
+  const val = localStorage.getItem(key);
+  if (!val) return 0;
+  const elapsed = Date.now() - Number(val);
+  return Math.max(0, CD_MS - elapsed);
+}
+function checkCD() {
+  const rem = getCDRemaining();
+  const notice = document.getElementById('cdNotice');
+  const submitBtn = document.getElementById('submitBtn');
+  if (rem > 0) {
+    notice.style.display = 'flex';
+    submitBtn.disabled = true;
+    updateCDTimer(rem);
+    if (cdTimer) clearInterval(cdTimer);
+    cdTimer = setInterval(() => {
+      const r = getCDRemaining();
+      if (r <= 0) {
+        clearInterval(cdTimer);
+        notice.style.display = 'none';
+        submitBtn.disabled = false;
+        document.getElementById('cdTimer').textContent = '';
+      } else {
+        updateCDTimer(r);
+      }
+    }, 1000);
+  } else {
+    notice.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+function updateCDTimer(ms) {
+  const m = Math.floor(ms / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  document.getElementById('cdTimer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════
+// ITEMS
+// ══════════════════════════════════════════
+function setCat(cat, el) {
+  curCat = cat;
+  document.querySelectorAll('.ctab').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+  renderItems();
+}
+function renderItems() {
+  const grid = document.getElementById('itemsGrid');
+  const items = ITEMS[curCat] || [];
+  grid.innerHTML = items.map(item => {
+    const q = qty[item.id] || 0;
+    return `<div class="item-card ${q > 0 ? 'active' : ''}" id="icard-${item.id}">
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-price">${item.price} мт / шт</div>
+      </div>
+      <div class="item-ctrl">
+        <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+        <span class="qty-val" id="qty-${item.id}">${q}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function changeQty(id, delta) {
+  qty[id] = Math.max(0, (qty[id] || 0) + delta);
+  // Оновити лише цей елемент без перерендеру
+  const qEl = document.getElementById('qty-' + id);
+  const card = document.getElementById('icard-' + id);
+  if (qEl) qEl.textContent = qty[id];
+  if (card) card.classList.toggle('active', qty[id] > 0);
+  updateSummary();
+}
+function updateSummary() {
+  let count = 0, total = 0, names = [];
+  Object.entries(qty).forEach(([id, q]) => {
+    if (!q) return;
+    const item = findItem(id);
+    if (!item) return;
+    count += q;
+    total += item.price * q;
+    names.push(`${item.name} ×${q}`);
+  });
+  document.getElementById('sumCount').textContent = count;
+  document.getElementById('sumTotal').textContent = total.toLocaleString('uk-UA') + ' мт.';
+  document.getElementById('sumItems').textContent = names.slice(0,4).join(', ') + (names.length > 4 ? ' ...' : '');
+}
+function resetForm() {
+  qty = {};
+  renderItems();
+  updateSummary();
+}
+function findItem(id) {
+  for (const cat of Object.values(ITEMS)) {
+    const f = cat.find(x => x.id === id);
+    if (f) return f;
+  }
+  return null;
+}
+function getSelectedItems() {
+  return Object.entries(qty)
+    .filter(([,q]) => q > 0)
+    .map(([id,q]) => ({ id, qty:q, ...findItem(id) }));
+}
+
+// ══════════════════════════════════════════
+// CONFIRM & SUBMIT
+// ══════════════════════════════════════════
+function openConfirm() {
+  if (getCDRemaining() > 0) return toast('Зачекайте завершення кулдауну','err');
+  const items = getSelectedItems();
+  if (!items.length) return toast('Оберіть хоча б один предмет','err');
+  let total = 0;
+  let html = '';
+  items.forEach(it => {
+    const sub = it.price * it.qty;
+    total += sub;
+    html += `<div class="detail-item"><span class="di-name">${it.name}</span><span class="di-qty">×${it.qty}</span><span class="di-price">${sub.toLocaleString('uk-UA')} мт.</span></div>`;
+  });
+  html += `<div class="detail-total"><span>Всього:</span><span style="color:var(--c);">${total.toLocaleString('uk-UA')} мт.</span></div>`;
+  document.getElementById('confirmList').innerHTML = html;
+  openM('confirmOv');
+}
+async function submitReport() {
+  const items = getSelectedItems();
+  if (!items.length) return;
+  if (getCDRemaining() > 0) return toast('Кулдаун ще не завершено','err');
+  const btn = document.getElementById('confirmSendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Відправлення...';
+  const itemsStr = items.map(it => `${it.id}:${it.qty}`).join(',');
+  try {
+    const r = await call('addReport', { nick: me.nick, staticId: me.staticId, login: me.login, items: itemsStr });
+    if (r.ok) {
+      setCDNow();
+      checkCD();
+      closeM('confirmOv');
+      toast('Звіт успішно відправлено! ✅', 'ok');
+      resetForm();
+      cache.history.at = 0;
+    } else {
+      toast(r.error || 'Помилка відправки', 'err');
+    }
+  } catch(e) { toast('Помилка з\'єднання', 'err'); }
+  btn.disabled = false;
+  btn.innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Підтвердити';
+}
+
+// ══════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════
+async function loadHistory(force = false) {
+  document.getElementById('hLoad').style.display = 'block';
+  document.getElementById('hWrap').style.display = 'none';
+  try {
+    curHPg = 1;
+    const canCache = !force && cache.history.data && Date.now() - cache.history.at < CACHE_TTL;
+    const r = canCache ? { ok:true, reports: cache.history.data } : await call('getReports');
+    allH = (r.reports || []);
+    cache.history = { at: Date.now(), data: allH };
+    document.getElementById('hCnt').textContent = `${allH.length} звітів знайдено`;
+    filterH();
+    document.getElementById('hLoad').style.display = 'none';
+    document.getElementById('hWrap').style.display = 'block';
+  } catch(e) {
+    toast('Помилка завантаження', 'err');
+    document.getElementById('hLoad').style.display = 'none';
+    document.getElementById('hWrap').style.display = 'block';
+  }
+}
+function filterH() {
+  const q = (document.getElementById('hSearch').value || '').toLowerCase();
+  filtH = allH.filter(r =>
+    !q || (r.nick||'').toLowerCase().includes(q) || String(r.staticId||'').includes(q)
+  );
+  renderH();
+}
+function renderH() {
+  const tb = document.getElementById('hBody');
+  const sl = filtH.slice((curHPg-1)*PER, curHPg*PER);
+  if (!filtH.length) {
+    document.getElementById('hEmpty').style.display = 'block';
+    tb.innerHTML = '';
+    document.getElementById('hPager').innerHTML = '';
+    return;
+  }
+  document.getElementById('hEmpty').style.display = 'none';
+  tb.innerHTML = sl.map(r => {
+    const dt = r.date ? fmtKyiv(new Date(r.date)) : '—';
+    const canDel = me && me.isAdmin;
+    return `<tr>
+      <td class="tmono" style="white-space:nowrap;">${dt}</td>
+      <td class="tbold">${esc(r.nick||'—')}</td>
+      <td class="tmono">${r.staticId||'—'}</td>
+      <td><span class="total-badge">${(r.total||0).toLocaleString('uk-UA')} мт.</span></td>
+      <td class="racts">
+        <button class="rbtn" onclick="viewDetail('${r.id}')" title="Деталі"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        ${canDel ? `<button class="rbtn del" onclick="askDel('${r.id}')" title="Видалити"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+  const tot = Math.ceil(filtH.length / PER);
+  document.getElementById('hPager').innerHTML = tot <= 1 ? '' :
+    Array.from({length: Math.min(tot,10)}, (_,i) =>
+      `<button class="pgb${i+1===curHPg?' on':''}" onclick="goHP(${i+1})">${i+1}</button>`).join('');
+}
+function goHP(p) { curHPg = p; renderH(); }
+function viewDetail(id) {
+  const r = allH.find(x => x.id === id);
+  if (!r) return;
+  const dt = r.date ? fmtKyivLong(new Date(r.date)) : '—';
+  let items = [];
+  try { items = typeof r.items === 'string' ? JSON.parse(r.items) : (r.items||[]); } catch(_){}
+  let itemsHtml = items.map(it =>
+    `<div class="detail-item"><span class="di-name">${esc(it.name||it.id)}</span><span class="di-qty">×${it.qty}</span><span class="di-price">${((it.price||0)*it.qty).toLocaleString('uk-UA')} мт.</span></div>`
+  ).join('');
+  document.getElementById('detBody').innerHTML = `
+    <div class="drow"><span class="dlbl">Гравець</span><span class="dval">${esc(r.nick||'—')}</span></div>
+    <div class="drow"><span class="dlbl">Static</span><span class="dval tmono">${r.staticId||'—'}</span></div>
+    <div class="drow" style="margin-bottom:14px;"><span class="dlbl">Дата</span><span class="dval">${dt}</span></div>
+    ${itemsHtml}
+    <div class="detail-total"><span>Всього:</span><span style="color:var(--c);">${(r.total||0).toLocaleString('uk-UA')} мт.</span></div>`;
+  openM('detOv');
+}
+
+// ══════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════
+function askDel(id) {
+  delId = id;
+  document.getElementById('dLogin').value = '';
+  document.getElementById('dPass').value = '';
+  document.getElementById('dErr').style.display = 'none';
+  openM('delOv');
+}
+async function confirmDel() {
+  const login = document.getElementById('dLogin').value.trim();
+  const pass = document.getElementById('dPass').value.trim();
+  if (!login || !pass) { showDE('Заповніть логін та пароль'); return; }
+  try {
+    const r = await call('deleteReport', { id: delId, login, password: pass });
+    if (r.ok) {
+      closeM('delOv');
+      toast('Запис видалено', 'ok');
+      cache.history.at = 0;
+      loadHistory(true);
+    } else showDE(r.error || 'Невірні облікові дані');
+  } catch(e) { showDE('Помилка з\'єднання'); }
+}
+function showDE(m) {
+  const e = document.getElementById('dErr');
+  e.textContent = m;
+  e.style.display = 'block';
+}
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+async function loadStats() {
+  try {
+    const r = await call('getStats', { period: dateFilter });
+    const s = r.stats || {};
+    document.getElementById('stTotal').textContent = s.total ?? '—';
+    document.getElementById('stMat').textContent = s.totalMat ? s.totalMat.toLocaleString('uk-UA') + ' мт.' : '—';
+    document.getElementById('stAvg').textContent = s.avg ? Math.round(s.avg).toLocaleString('uk-UA') + ' мт.' : '—';
+    // Leaderboard
+    const lb = (s.leaderboard || []).slice(0,10);
+    const maxCnt = lb.length ? lb[0].count || 1 : 1;
+    const posClass = ['lp1','lp2','lp3','lpx','lpx','lpx','lpx','lpx','lpx','lpx'];
+    if (!lb.length) { document.getElementById('lb').innerHTML = '<div class="empty">Дані відсутні</div>'; return; }
+    document.getElementById('lb').innerHTML = '<div class="lb-list">' + lb.map((x,i) => `
+      <div class="lb-row">
+        <div class="lb-pos ${posClass[i]||'lpx'}">${i+1}</div>
+        <div class="lb-name">${esc(x.name)}</div>
+        <div class="lb-bar-wrap"><div class="lb-bar" style="width:${Math.round(x.count/maxCnt*100)}%"></div></div>
+        <div class="lb-cnt">${x.count} звітів</div>
+      </div>`).join('') + '</div>';
+  } catch(e) { toast('Помилка статистики','err'); }
+}
+function setDateFilter(f, el) {
+  dateFilter = f;
+  document.querySelectorAll('.dfp').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+  loadStats();
+}
+
+// ══════════════════════════════════════════
+// CSV
+// ══════════════════════════════════════════
+function exportCSV() {
+  const rows = [['ID','Дата','Гравець','Static ID','Всього (мт)','Предмети']];
+  filtH.forEach(r => {
+    let items = [];
+    try { items = typeof r.items === 'string' ? JSON.parse(r.items) : (r.items||[]); } catch(_){}
+    const itemsStr = items.map(it => `${it.name||it.id} x${it.qty}`).join('; ');
+    rows.push([r.id||'', r.date||'', r.nick||'', r.staticId||'', r.total||0, itemsStr]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `EMS_sklad_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+async function call(action, params = {}) {
+  const q = new URLSearchParams({ action, ...params });
+  let err;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 12000);
+    try {
+      const r = await fetch(API + '?' + q.toString(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: ctl.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(t);
+      if (!r.ok) { const b = await r.text(); throw new Error(`HTTP ${r.status}: ${b.slice(0,100)}`); }
+      const ct = (r.headers.get('content-type')||'').toLowerCase();
+      if (!ct.includes('application/json')) { const b = await r.text(); throw new Error(`NON_JSON: ${b.slice(0,100)}`); }
+      return await r.json();
+    } catch(e) { clearTimeout(t); err = e; if (attempt === 0) await new Promise(res => setTimeout(res,300)); }
+  }
+  throw err;
+}
+function humanizeErr(e) {
+  const m = String(e?.message||e||'');
+  if (m.includes('Failed to fetch')||m.includes('NetworkError')) return 'Немає доступу до сервера. Перевір підключення.';
+  if (m.includes('NON_JSON')) return 'Помилка сервера. Перевір налаштування.';
+  return 'Помилка: ' + m.slice(0,80);
+}
+function fmtKyiv(d) { return d.toLocaleString('uk-UA',{timeZone:'Europe/Kyiv',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function fmtKyivLong(d) { return d.toLocaleString('uk-UA',{timeZone:'Europe/Kyiv',dateStyle:'long',timeStyle:'short'}); }
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+let tt;
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  document.getElementById('tIco').textContent = type==='ok' ? '✅' : '❌';
+  document.getElementById('tMsg').textContent = msg;
+  t.className = `show ${type}`; clearTimeout(tt);
+  tt = setTimeout(() => t.className='', 3200);
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
